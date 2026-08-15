@@ -1,20 +1,47 @@
-import { createInitialState, DEFAULT_TIMEZONE_ID, SolsticeState, TIMEZONE_OPTIONS } from './product';
+import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolsticeState, TimezoneLocation } from './product';
 
 const STORAGE_KEY = 'solstice.state.v1';
+
+const planTypes: PlanType[] = ['meeting', 'event', 'sync-up', 'stand-up'];
+const repeatRules: RepeatRule[] = ['none', 'daily', 'weekdays', 'weekends', 'weekly', 'monthly', 'annual'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function normalizeTimezone(value: unknown): TimezoneLocation | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.timeZone !== 'string' || typeof value.label !== 'string' || typeof value.city !== 'string') return null;
+  if (!Number.isFinite(value.latitude) || !Number.isFinite(value.longitude)) return null;
+  const latitude = value.latitude as number;
+  const longitude = value.longitude as number;
+  return { id: value.id, label: value.label.trim() || value.city, city: value.city, timeZone: value.timeZone, latitude, longitude, ...(value.isDefault === true ? { isDefault: true } : {}) };
+}
+
+function normalizePlan(value: unknown, timezoneIds: Set<string>): Plan | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.timezoneId !== 'string' || !timezoneIds.has(value.timezoneId) || typeof value.startTime !== 'string' || typeof value.endTime !== 'string' || typeof value.label !== 'string') return null;
+  const planType = planTypes.includes(value.planType as PlanType) ? value.planType as PlanType : 'meeting';
+  const repeatRule = repeatRules.includes(value.repeatRule as RepeatRule) ? value.repeatRule as RepeatRule : 'none';
+  return { id: value.id, timezoneId: value.timezoneId, startTime: value.startTime, endTime: value.endTime, label: value.label, planType, repeatRule, ...(typeof value.date === 'string' ? { date: value.date } : {}), ...(typeof value.repeatDay === 'number' ? { repeatDay: value.repeatDay } : {}), ...(typeof value.repeatMonth === 'number' ? { repeatMonth: value.repeatMonth } : {}), hardStop: value.hardStop === true };
+}
+
+export function normalizeState(value: unknown): SolsticeState {
+  const defaults = createInitialState();
+  if (!isRecord(value)) return defaults;
+  const timezones = Array.isArray(value.timezones) ? value.timezones.map(normalizeTimezone).filter((timezone): timezone is TimezoneLocation => Boolean(timezone)) : [];
+  const uniqueTimezones = timezones.filter((timezone, index, all) => all.findIndex((candidate) => candidate.id === timezone.id) === index);
+  const safeTimezones = uniqueTimezones.length ? uniqueTimezones : defaults.timezones;
+  const activeTimezoneId = safeTimezones.some((timezone) => timezone.id === value.activeTimezoneId) ? value.activeTimezoneId as string : safeTimezones.find((timezone) => timezone.id === DEFAULT_TIMEZONE_ID)?.id ?? safeTimezones[0].id;
+  const timezoneIds = new Set(safeTimezones.map((timezone) => timezone.id));
+  const plans = Array.isArray(value.plans) ? value.plans.map((plan) => normalizePlan(plan, timezoneIds)).filter((plan): plan is Plan => Boolean(plan)) : [];
+  return { version: 1, timezones: safeTimezones, activeTimezoneId, plans };
+}
 
 export function loadState(): SolsticeState {
   if (typeof window === 'undefined') return createInitialState();
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (!stored) return createInitialState();
-    const parsed = JSON.parse(stored) as Partial<SolsticeState>;
-    const defaults = createInitialState();
-    const timezones = Array.isArray(parsed.timezones) ? parsed.timezones.filter((timezone) => timezone && typeof timezone.id === 'string' && typeof timezone.timeZone === 'string') : defaults.timezones;
-    const uniqueTimezones = timezones.filter((timezone, index, all) => all.findIndex((candidate) => candidate.id === timezone.id) === index);
-    const safeTimezones = uniqueTimezones.length ? uniqueTimezones : defaults.timezones;
-    const activeTimezoneId = safeTimezones.some((timezone) => timezone.id === parsed.activeTimezoneId) ? parsed.activeTimezoneId as string : safeTimezones.find((timezone) => timezone.id === DEFAULT_TIMEZONE_ID)?.id ?? safeTimezones[0].id;
-    const plans = Array.isArray(parsed.plans) ? parsed.plans.filter((plan) => plan && typeof plan.id === 'string' && typeof plan.timezoneId === 'string' && typeof plan.startTime === 'string' && typeof plan.endTime === 'string') : [];
-    return { version: 1, timezones: safeTimezones.length ? safeTimezones : TIMEZONE_OPTIONS.slice(0, 1), activeTimezoneId, plans };
+    return normalizeState(JSON.parse(stored) as unknown);
   } catch {
     return createInitialState();
   }
