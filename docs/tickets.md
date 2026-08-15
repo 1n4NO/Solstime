@@ -88,7 +88,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-208 — Chrome new page extension for Free
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** permission-free Manifest V3 new-page shell, canonical extension surface parameter, local load instructions, and isolated deployment URL configuration.
 - **Tier:** Free
 - **Goal:** Replace the browser's new tab with a calm, useful Solstime view.
 - **Scope:** Manifest V3 new-tab override, permissions review, dial rendering, timezone/theme settings, onboarding, restore state, and link to the full app.
