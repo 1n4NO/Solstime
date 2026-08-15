@@ -1,0 +1,67 @@
+export type PlanType = 'meeting' | 'event' | 'sync-up' | 'stand-up';
+export type RepeatRule = 'none' | 'daily' | 'weekdays' | 'weekends' | 'weekly' | 'monthly' | 'annual';
+export type OneTimeDate = 'today' | 'tomorrow' | 'custom';
+
+export type TimezoneLocation = {
+  id: string;
+  label: string;
+  city: string;
+  timeZone: string;
+  latitude: number;
+  longitude: number;
+  isDefault?: boolean;
+};
+
+export type Plan = {
+  id: string;
+  timezoneId: string;
+  startTime: string;
+  endTime: string;
+  label: string;
+  planType: PlanType;
+  repeatRule: RepeatRule;
+  date?: string;
+  hardStop: boolean;
+};
+
+export type SolsticeState = {
+  version: 1;
+  timezones: TimezoneLocation[];
+  activeTimezoneId: string;
+  plans: Plan[];
+};
+
+export const DEFAULT_TIMEZONE_ID = 'bengaluru';
+
+export const TIMEZONE_OPTIONS: TimezoneLocation[] = [
+  { id: 'bengaluru', label: 'Bengaluru, India', city: 'Bengaluru', timeZone: 'Asia/Kolkata', latitude: 12.9716, longitude: 77.5946, isDefault: true },
+  { id: 'london', label: 'London, United Kingdom', city: 'London', timeZone: 'Europe/London', latitude: 51.5072, longitude: -0.1276 },
+  { id: 'new-york', label: 'New York, United States', city: 'New York', timeZone: 'America/New_York', latitude: 40.7128, longitude: -74.0060 },
+  { id: 'los-angeles', label: 'Los Angeles, United States', city: 'Los Angeles', timeZone: 'America/Los_Angeles', latitude: 34.0522, longitude: -118.2437 },
+  { id: 'dubai', label: 'Dubai, United Arab Emirates', city: 'Dubai', timeZone: 'Asia/Dubai', latitude: 25.2048, longitude: 55.2708 },
+  { id: 'tokyo', label: 'Tokyo, Japan', city: 'Tokyo', timeZone: 'Asia/Tokyo', latitude: 35.6762, longitude: 139.6503 },
+  { id: 'sydney', label: 'Sydney, Australia', city: 'Sydney', timeZone: 'Australia/Sydney', latitude: -33.8688, longitude: 151.2093 },
+  { id: 'utc', label: 'UTC', city: 'UTC', timeZone: 'UTC', latitude: 0, longitude: 0 },
+];
+
+export const PLAN_TYPE_COLORS: Record<PlanType, string> = {
+  meeting: '#f1b56e',
+  event: '#cf8a79',
+  'sync-up': '#8fa8c4',
+  'stand-up': '#a9c7a4',
+};
+
+export const EMPTY_PLAN: Omit<Plan, 'id'> = {
+  timezoneId: DEFAULT_TIMEZONE_ID,
+  startTime: '',
+  endTime: '',
+  label: '',
+  planType: 'meeting',
+  repeatRule: 'none',
+  date: 'today',
+  hardStop: false,
+};
+
+export function createInitialState(): SolsticeState {
+  return { version: 1, timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
+}

@@ -1,0 +1,17 @@
+# Solstice
+
+Solstice is a 24-hour planner that represents the day as a solar dial.
+
+## Product
+
+- The dial places noon at the top and midnight at the bottom.
+- Sunrise and sunset are calculated dynamically for the configured location.
+- Daylight and night are represented as distinct regions on the dial.
+- The current local time is shown at the center.
+
+## Technology
+
+- Next.js App Router
+- TypeScript
+- Atomic Design component structure
+- Solar calculations are performed locally in the browser.
