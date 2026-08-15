@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { EMPTY_PLAN, Plan, PlanType, RepeatRule, TIMEZONE_OPTIONS, TimezoneLocation } from '../../lib/product';
+import { EMPTY_PLAN, Plan, PlanType, RepeatRule, TIMEZONE_OPTIONS, ThemeId, THEME_OPTIONS, TimezoneLocation } from '../../lib/product';
 import { dateKey, localTimeStatus } from '../../lib/time';
 import { validatePlanTimes } from '../../lib/validation';
-import { copy, localeTag, type LocaleId } from '../../lib/i18n';
+import { copy, localeTag, LOCALE_OPTIONS, type LocaleId } from '../../lib/i18n';
 
 type PlanDraft = Omit<Plan, 'id'>;
-type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; activeTimezoneId: string; locale: LocaleId; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onAddTimezone: (timezone: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
+type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; activeTimezoneId: string; locale: LocaleId; themeId: ThemeId; isWidgetSurface: boolean; onLocaleChange: (locale: LocaleId) => void; onThemeChange: (themeId: ThemeId) => void; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onAddTimezone: (timezone: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
 
 const planTypes: Array<{ value: PlanType; label: string }> = [
   { value: 'meeting', label: 'Meeting' }, { value: 'event', label: 'Event' }, { value: 'sync-up', label: 'Sync-up' }, { value: 'stand-up', label: 'Stand-up' },
@@ -18,7 +18,7 @@ const repeatOptions: Array<{ value: RepeatRule; label: string }> = [
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onClose, onSave, onAddTimezone, onRenameTimezone, onRemoveTimezone }: PlanModalProps) {
+export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, themeId, isWidgetSurface, onLocaleChange, onThemeChange, onClose, onSave, onAddTimezone, onRenameTimezone, onRemoveTimezone }: PlanModalProps) {
   const [draft, setDraft] = useState<PlanDraft>({ ...EMPTY_PLAN, timezoneId: '' });
   const [showAddTimezone, setShowAddTimezone] = useState(false);
   const [newTimezoneId, setNewTimezoneId] = useState('');
@@ -26,6 +26,7 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [ambiguousConfirmed, setAmbiguousConfirmed] = useState(false);
+  const [modalTab, setModalTab] = useState<'plan' | 'settings'>('plan');
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const text = copy(locale);
@@ -34,7 +35,7 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
 
   useEffect(() => {
     if (!open) return;
-    setDraft({ ...EMPTY_PLAN, timezoneId: activeTimezoneId }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError(''); setWarning(''); setAmbiguousConfirmed(false);
+    setDraft({ ...EMPTY_PLAN, timezoneId: activeTimezoneId }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError(''); setWarning(''); setAmbiguousConfirmed(false); setModalTab('plan');
     previouslyFocused.current = document.activeElement as HTMLElement;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -105,7 +106,12 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
       <div className="plan-modal" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="plan-modal-title">
         <div className="modal-header"><div><p className="modal-kicker">{text.newMoment}</p><h2 id="plan-modal-title">{text.addToDay}</h2></div><button className="modal-close" type="button" onClick={onClose} aria-label={text.closeModal}>×</button></div>
 
-        <div className="modal-form">
+        {isWidgetSurface && <div className="modal-tabs" role="tablist" aria-label="Modal sections"><button className={modalTab === 'plan' ? 'modal-tab modal-tab--active' : 'modal-tab'} type="button" role="tab" aria-selected={modalTab === 'plan'} onClick={() => setModalTab('plan')}>{text.addToDay}</button><button className={modalTab === 'settings' ? 'modal-tab modal-tab--active' : 'modal-tab'} type="button" role="tab" aria-selected={modalTab === 'settings'} onClick={() => setModalTab('settings')}>{text.theme} / {text.language}</button></div>}
+
+        {isWidgetSurface && modalTab === 'settings' ? <div className="modal-form modal-settings" role="tabpanel">
+          <label className="field"><span>{text.theme}</span><select value={themeId} onChange={(event) => onThemeChange(event.target.value as ThemeId)} aria-label={text.chooseTheme}>{THEME_OPTIONS.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}</select></label>
+          <label className="field"><span>{text.language}</span><select value={locale} onChange={(event) => onLocaleChange(event.target.value as LocaleId)} aria-label={text.language}>{LOCALE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
+        </div> : <div className="modal-form">
           <label className="field"><span>{text.timezone}</span><select value={draft.timezoneId} onChange={(event) => update('timezoneId', event.target.value)}><option value="">{text.chooseTimezone}</option>{savedTimezones.map((timezone) => <option key={timezone.id} value={timezone.id}>{timezone.label}</option>)}</select></label>
           <button className="add-timezone-toggle" type="button" onClick={() => setShowAddTimezone((value) => !value)}>{showAddTimezone ? `− ${text.closeTimezoneList}` : `+ ${text.addTimezone}`}</button>
           {showAddTimezone && <div className="timezone-add-row"><select value={newTimezoneId} onChange={(event) => setNewTimezoneId(event.target.value)} aria-label={text.chooseTimezoneToAdd}><option value="">{text.chooseTimezoneToAdd}</option>{availableTimezones.map((timezone) => <option key={timezone.id} value={timezone.id}>{timezone.label}</option>)}</select><button className="small-action" type="button" onClick={addTimezoneToDraft} disabled={!newTimezoneId}>{text.add}</button></div>}
@@ -124,7 +130,7 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
           <label className="toggle-row"><span><b>{text.hardStop}</b><small>{text.hardStopHelp}</small></span><input type="checkbox" checked={draft.hardStop} onChange={(event) => update('hardStop', event.target.checked)} /><i /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
           {warning && <p className="form-warning" role="status">{warning}</p>}
-        </div>
+        </div>}
         <div className="modal-footer"><button className="cancel-button" type="button" onClick={onClose}>{text.cancel}</button><button className="save-button" type="button" disabled={!canSave} onClick={save}>{text.save}</button></div>
       </div>
     </div>

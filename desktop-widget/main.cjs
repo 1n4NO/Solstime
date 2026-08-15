@@ -9,9 +9,11 @@ function createWindow() {
     height: 640,
     minWidth: 420,
     minHeight: 500,
-    backgroundColor: '#111513',
+    backgroundColor: '#00000000',
     title: 'Solstime',
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    frame: false,
+    transparent: true,
+    hasShadow: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -24,7 +26,9 @@ function createWindow() {
     void shell.openExternal(url);
     return { action: 'deny' };
   });
-  void window.loadURL(widgetUrl);
+  const url = new URL(widgetUrl);
+  url.searchParams.set('surface', 'widget');
+  void window.loadURL(url.toString());
 }
 
 app.whenReady().then(() => {

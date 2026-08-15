@@ -1,6 +1,6 @@
 # Desktop widget
 
-The first desktop surface is an Electron shell around the canonical web dial.
+The first desktop surface is a transparent, frameless Electron shell around the canonical web dial. It loads the web app with `surface=widget`, which removes the app header, page padding, outer background, and floating add control while preserving the dial.
 
 ## Local run
 

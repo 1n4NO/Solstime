@@ -15,9 +15,16 @@ export function SolstimeApp() {
   const [isSwitching, setIsSwitching] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [timezoneAnnouncement, setTimezoneAnnouncement] = useState('');
+  const [isWidgetSurface, setIsWidgetSurface] = useState(false);
   const switchTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => { setState(loadState()); setHydrated(true); }, []);
+  useEffect(() => {
+    const widget = new URLSearchParams(window.location.search).get('surface') === 'widget';
+    setIsWidgetSurface(widget);
+    document.body.classList.toggle('widget-surface', widget);
+    return () => document.body.classList.remove('widget-surface');
+  }, []);
   useEffect(() => { document.documentElement.lang = state.locale; document.documentElement.dir = state.locale === 'ar' ? 'rtl' : 'ltr'; }, [state.locale]);
   useEffect(() => { if (hydrated) setStorageError(!saveState(state)); }, [hydrated, state]);
   useEffect(() => () => { if (switchTimer.current) window.clearTimeout(switchTimer.current); }, []);
@@ -77,7 +84,7 @@ export function SolstimeApp() {
   const languageCopy = copy(state.locale);
 
   return (
-    <main className="app-shell" data-theme={state.themeId}>
+    <main className={`app-shell${isWidgetSurface ? ' app-shell--widget' : ''}`} data-theme={state.themeId}>
       <header className="topbar">
         <a className="wordmark" href="#" aria-label="Solstime home"><BrandMark /><span>solstime</span></a>
         <label className="theme-picker">
@@ -101,7 +108,7 @@ export function SolstimeApp() {
       <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} locale={state.locale} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       <div className="visually-hidden" aria-live="polite" aria-atomic="true">{timezoneAnnouncement}</div>
       {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
-      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} locale={state.locale} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
+      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} locale={state.locale} themeId={state.themeId} isWidgetSurface={isWidgetSurface} onLocaleChange={changeLocale} onThemeChange={changeTheme} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );
 }
