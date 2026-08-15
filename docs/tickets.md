@@ -55,7 +55,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-206 — Entitlements and tier-aware feature gating
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** shared tier feature matrix helpers, entitlement status model, and normalization rules; server-authoritative enforcement remains a release gate.
 - **Tier:** Platform foundation
 - **Goal:** Define and enforce Free/Pro capabilities consistently across web, desktop, browser, mobile, and watch surfaces.
 - **Scope:** Account entitlement model, subscription state, grace period, restore/purchase state, feature flags, offline cache rules, upgrade prompts, and server-authoritative checks.

@@ -76,10 +76,10 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
     setError('');
     setWarning('');
     if (hasEventDraft) {
-      if (!draft.startTime || !draft.endTime || !draft.label) return setError('Add a start time, end time, and label.');
+      if (!draft.startTime || !draft.endTime || !draft.label) return setError(text.validation.missingFields);
       const timeValidation = validatePlanTimes(draft.startTime, draft.endTime);
-      if (!timeValidation.valid) return setError(timeValidation.message ?? 'Check the plan times.');
-      if (draft.repeatRule === 'none' && draft.date === 'custom' && !customDate) return setError('Choose a custom date.');
+      if (!timeValidation.valid) return setError(timeValidation.message ?? text.validation.checkTimes);
+      if (draft.repeatRule === 'none' && draft.date === 'custom' && !customDate) return setError(text.validation.customDate);
     }
     const selected = TIMEZONE_OPTIONS.find((option) => option.id === draft.timezoneId) ?? savedTimezones.find((option) => option.id === draft.timezoneId);
     let selectedDate: string | undefined;
@@ -90,9 +90,9 @@ export function PlanModal({ open, savedTimezones, activeTimezoneId, locale, onCl
       const eventDate = selectedDate ?? dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata');
       const startStatus = localTimeStatus(eventDate, draft.startTime, selected?.timeZone ?? 'Asia/Kolkata');
       const endStatus = localTimeStatus(eventDate, draft.endTime, selected?.timeZone ?? 'Asia/Kolkata');
-      if (startStatus === 'nonexistent' || endStatus === 'nonexistent') return setError('One of these times does not exist because of a daylight-saving change.');
+      if (startStatus === 'nonexistent' || endStatus === 'nonexistent') return setError(text.validation.dstChange);
       if ((startStatus === 'ambiguous' || endStatus === 'ambiguous') && !ambiguousConfirmed) {
-        setWarning('This date includes a daylight-saving fall-back hour. Click Save again to use the first occurrence of an ambiguous time.');
+        setWarning(text.validation.dstWarning);
         setAmbiguousConfirmed(true);
         return;
       }
