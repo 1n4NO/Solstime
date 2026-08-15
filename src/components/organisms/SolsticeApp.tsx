@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AddButton } from '../atoms/AddButton';
 import { BrandMark } from '../atoms/BrandMark';
 import { PlanModal } from './PlanModal';
 import { TimeDial } from './TimeDial';
@@ -59,8 +58,7 @@ export function SolsticeApp() {
       <header className="topbar">
         <a className="wordmark" href="#" aria-label="Solstice home"><BrandMark /><span>solstice</span></a>
       </header>
-      <TimeDial timezone={activeTimezone} timezones={state.timezones} isSwitching={isSwitching} onTimezoneChange={changeTimezone} />
-      <AddButton onClick={() => setModalOpen(true)} />
+      <TimeDial timezone={activeTimezone} timezones={state.timezones} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
       <PlanModal open={modalOpen} savedTimezones={state.timezones} onClose={() => setModalOpen(false)} onSave={savePlan} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>

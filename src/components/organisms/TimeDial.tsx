@@ -5,14 +5,16 @@ import { dialAngle, dialGradientAngle, formatSolarTime, formatTime, getSolarTime
 import type { TimezoneLocation } from '../../lib/product';
 import { DialTick } from '../atoms/DialTick';
 import { DialCore } from '../molecules/DialCore';
+import { getMoonPhase } from '../../lib/moon';
 
-type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; isSwitching: boolean; onTimezoneChange: (id: string) => void };
+type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; isSwitching: boolean; onTimezoneChange: (id: string) => void; onAdd: () => void };
 
-export function TimeDial({ timezone, timezones, isSwitching, onTimezoneChange }: TimeDialProps) {
+export function TimeDial({ timezone, timezones, isSwitching, onTimezoneChange, onAdd }: TimeDialProps) {
   const [now, setNow] = useState(() => new Date());
   const ticks = useMemo(() => Array.from({ length: 48 }, (_, index) => index), []);
   const currentHour = localHour(now, timezone.timeZone);
   const solarTimes = getSolarTimes(now, timezone, timezone.timeZone);
+  const moonPhase = getMoonPhase(now);
   const dialStyle = {
     '--sunrise-angle': `${dialGradientAngle(solarTimes.sunrise)}deg`,
     '--sunset-angle': `${dialGradientAngle(solarTimes.sunset)}deg`,
@@ -36,7 +38,7 @@ export function TimeDial({ timezone, timezones, isSwitching, onTimezoneChange }:
             <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }}><span /></div>
             <div className="ticks">{ticks.map((index) => <DialTick key={index} index={index} />)}</div>
           </div>
-          <DialCore time={formatTime(now, timezone.timeZone)} timezone={timezone} timezones={timezones} onTimezoneChange={onTimezoneChange} />
+          <DialCore time={formatTime(now, timezone.timeZone)} timezone={timezone} timezones={timezones} moonPhase={moonPhase} onTimezoneChange={onTimezoneChange} onAdd={onAdd} />
         </div>
         <div className="dial-label dial-label--noon">NOON<span>12</span></div>
         <div className="dial-label dial-label--midnight">MIDNIGHT<span>00</span></div>
