@@ -9,5 +9,7 @@ The production provider should:
 - expose timezone/theme configuration through App Intents;
 - use privacy-safe content while the device is locked;
 - distinguish stale data from current data;
+- render a solid red cycle marker that fades out across period dates;
+- render a solid pink estimate marker that fades in and then fades out across the ovulation window;
 - deep-link to the selected date and timezone;
 - hide or explain unavailable Pro state without trusting a local entitlement flag.

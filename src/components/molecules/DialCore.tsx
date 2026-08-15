@@ -5,10 +5,11 @@ import { PlusIcon } from '../atoms/PlusIcon';
 import type { TimezoneLocation } from '../../lib/product';
 import type { MoonPhase } from '../../lib/moon';
 import { copy, type LocaleId } from '../../lib/i18n';
+import type { CycleMarker } from '../../lib/cycle';
 
-type DialCoreProps = { time: string; is24Hour: boolean; dateLabel: string; dateValue: string; timezone: TimezoneLocation; timezones: TimezoneLocation[]; moonPhase: MoonPhase; locale: LocaleId; onTimezoneChange: (id: string) => void; onToggleTimeFormat: () => void; onDateChange: (dateValue: string) => void; onShiftDate: (dayOffset: number) => void; onAdd: () => void };
+type DialCoreProps = { time: string; is24Hour: boolean; dateLabel: string; dateValue: string; timezone: TimezoneLocation; timezones: TimezoneLocation[]; moonPhase: MoonPhase; cycleMarker: CycleMarker | null; locale: LocaleId; onTimezoneChange: (id: string) => void; onToggleTimeFormat: () => void; onDateChange: (dateValue: string) => void; onShiftDate: (dayOffset: number) => void; onAdd: () => void };
 
-export function DialCore({ time, is24Hour, dateLabel, dateValue, timezone, timezones, moonPhase, locale, onTimezoneChange, onToggleTimeFormat, onDateChange, onShiftDate, onAdd }: DialCoreProps) {
+export function DialCore({ time, is24Hour, dateLabel, dateValue, timezone, timezones, moonPhase, cycleMarker, locale, onTimezoneChange, onToggleTimeFormat, onDateChange, onShiftDate, onAdd }: DialCoreProps) {
   const [isOpen, setIsOpen] = useState(false);
   const timezoneMenuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -71,6 +72,7 @@ export function DialCore({ time, is24Hour, dateLabel, dateValue, timezone, timez
     <div className="dial-core">
       <MoonPhaseIcon phase={moonPhase} className="moon-phase-backdrop" decorative />
       <div className="moon-phase-overlay" aria-hidden="true" />
+      {cycleMarker && <span className={`cycle-marker cycle-marker--${cycleMarker.phase}`} style={{ opacity: cycleMarker.phase === 'period' ? Math.max(.14, 1 - cycleMarker.progress) : Math.max(.14, cycleMarker.progress <= .5 ? cycleMarker.progress * 2 : (1 - cycleMarker.progress) * 2) }} aria-label={cycleMarker.phase === 'period' ? 'Period tracker indicator' : 'Ovulation estimate indicator'} />}
       <div className="core-timezone" ref={timezoneMenuRef}>
         <button ref={triggerRef} className="core-timezone-trigger" type="button" aria-label={`${text.timezone}: ${timezone.city}. ${text.chooseTimezone}`} aria-controls="timezone-menu" aria-haspopup="listbox" aria-expanded={isOpen} onClick={() => setIsOpen((value) => !value)}>
           <span className="core-timezone-value">{timezone.city}</span>

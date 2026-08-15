@@ -15,10 +15,14 @@ import type { WeatherReading } from '../../lib/weather';
 import { WeatherLayer } from '../molecules/WeatherLayer';
 import { NoonMidnightMark } from '../atoms/NoonMidnightMark';
 import { copy, localeTag, type LocaleId } from '../../lib/i18n';
+import type { CycleTrackerState } from '../../lib/cycle';
+import { cycleMarkerForDate } from '../../lib/cycle';
+import type { ManualCircadianCycle } from '../../lib/circadian';
+import { getCircadianOverlay } from '../../lib/circadian';
 
-type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; plans: Plan[]; locale: LocaleId; isSwitching: boolean; onTimezoneChange: (id: string) => void; onAdd: () => void };
+type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; plans: Plan[]; cycle: CycleTrackerState; circadian: ManualCircadianCycle; locale: LocaleId; isSwitching: boolean; onTimezoneChange: (id: string) => void; onAdd: () => void };
 
-export function TimeDial({ timezone, timezones, plans, locale, isSwitching, onTimezoneChange, onAdd }: TimeDialProps) {
+export function TimeDial({ timezone, timezones, plans, cycle, circadian, locale, isSwitching, onTimezoneChange, onAdd }: TimeDialProps) {
   const [now, setNow] = useState(() => new Date());
   const [is24Hour, setIs24Hour] = useState(true);
   const [viewDate, setViewDate] = useState(() => dateKey(new Date(), timezone.timeZone));
@@ -30,6 +34,9 @@ export function TimeDial({ timezone, timezones, plans, locale, isSwitching, onTi
   const currentHour = localHour(now, timezone.timeZone);
   const solarTimes = getSolarTimes(viewDateObject, timezone, timezone.timeZone);
   const moonPhase = getMoonPhase(viewDateObject);
+  const cycleMarker = cycleMarkerForDate(cycle, viewDate);
+  const circadianOverlay = getCircadianOverlay(circadian);
+  const circadianStyle = circadianOverlay ? { '--circadian-start': `${dialGradientAngle(circadianOverlay.startMinutes / 60)}deg`, '--circadian-duration': `${circadianOverlay.durationMinutes / 4}deg` } as React.CSSProperties : undefined;
   const eventSegments = useMemo(() => getEventSegments(plans, timezones, viewDateObject, timezone.timeZone), [plans, timezones, viewDateObject, timezone.timeZone]);
   const currentMinutes = Math.round(currentHour * 60);
   const currentUv = nearestReading(uvReadings, currentMinutes);
@@ -81,6 +88,7 @@ export function TimeDial({ timezone, timezones, plans, locale, isSwitching, onTi
           </div>
           {solarTimes.status === 'normal' && <div className={`uv-rotating-layer${isSwitching ? ' uv-rotating-layer--switching' : ''}`}><UvArc readings={uvReadings} sunrise={solarTimes.sunrise * 60} sunset={solarTimes.sunset * 60} locale={locale} /></div>}
           {weatherReadings.length > 0 && <div className={`weather-rotating-layer${isSwitching ? ' weather-rotating-layer--switching' : ''}`}><WeatherLayer readings={weatherReadings} /></div>}
+          {circadianOverlay && <div className="circadian-overlay" style={circadianStyle} aria-label="Manual circadian cycle overlay" />}
           <div className="dial-foreground-layer">
             {solarTimes.sunriseAvailable && <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`${text.sunrise} ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">{text.sunrise} <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>}
             {solarTimes.sunsetAvailable && <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`${text.sunset} ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">{text.sunset} <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>}
@@ -96,7 +104,7 @@ export function TimeDial({ timezone, timezones, plans, locale, isSwitching, onTi
             <div className="ticks">{ticks.map((index) => <DialTick key={index} index={index} />)}</div>
           </div>
           <EventArcLayer segments={eventSegments} currentTimezoneCity={timezone.city} locale={locale} isSwitching={isSwitching} activeEventId={activeEvent?.planId} onActiveChange={setActiveEvent} />
-          <DialCore time={formatTime(now, timezone.timeZone, !is24Hour, localeTag(locale))} is24Hour={is24Hour} dateLabel={formatDateLabel(viewDateObject, timezone.timeZone, localeTag(locale))} dateValue={viewDate} timezone={timezone} timezones={timezones} moonPhase={moonPhase} locale={locale} onTimezoneChange={onTimezoneChange} onToggleTimeFormat={() => setIs24Hour((current) => !current)} onDateChange={setViewDate} onShiftDate={(dayOffset) => setViewDate((current) => shiftDateKey(current, dayOffset))} onAdd={onAdd} />
+          <DialCore time={formatTime(now, timezone.timeZone, !is24Hour, localeTag(locale))} is24Hour={is24Hour} dateLabel={formatDateLabel(viewDateObject, timezone.timeZone, localeTag(locale))} dateValue={viewDate} timezone={timezone} timezones={timezones} moonPhase={moonPhase} cycleMarker={cycleMarker} locale={locale} onTimezoneChange={onTimezoneChange} onToggleTimeFormat={() => setIs24Hour((current) => !current)} onDateChange={setViewDate} onShiftDate={(dayOffset) => setViewDate((current) => shiftDateKey(current, dayOffset))} onAdd={onAdd} />
         </div>
         <div className="dial-label dial-label--noon"><NoonMidnightMark type="sun" /><span>12</span></div>
         <div className="dial-label dial-label--midnight"><span>00</span><NoonMidnightMark type="moon" /></div>

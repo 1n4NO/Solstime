@@ -22,6 +22,8 @@ export type CycleTrackerState = {
   remindersEnabled: boolean;
 };
 
+export type CycleMarker = { phase: 'period' | 'ovulation'; progress: number };
+
 function isoDate(value: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const date = new Date(`${value}T00:00:00Z`);
@@ -81,4 +83,18 @@ export function exportCycleData(state: CycleTrackerState): string {
 
 export function clearCycleData(): CycleTrackerState {
   return { entries: [], estimates: [], remindersEnabled: false };
+}
+
+export function cycleMarkerForDate(state: CycleTrackerState, date: string): CycleMarker | null {
+  const entry = state.entries.find((candidate) => candidate.startDate <= date && (!candidate.endDate || date <= candidate.endDate));
+  if (entry) {
+    const start = Date.parse(`${entry.startDate}T00:00:00Z`);
+    const end = Date.parse(`${entry.endDate ?? entry.startDate}T00:00:00Z`);
+    return { phase: 'period', progress: end === start ? 1 : Math.max(0, Math.min(1, (Date.parse(`${date}T00:00:00Z`) - start) / (end - start))) };
+  }
+  const estimate = state.estimates.find((candidate) => candidate.windowStart <= date && date <= candidate.windowEnd);
+  if (!estimate) return null;
+  const start = Date.parse(`${estimate.windowStart}T00:00:00Z`);
+  const end = Date.parse(`${estimate.windowEnd}T00:00:00Z`);
+  return { phase: 'ovulation', progress: Math.max(0, Math.min(1, (Date.parse(`${date}T00:00:00Z`) - start) / Math.max(1, end - start))) };
 }

@@ -5,6 +5,28 @@ struct SolstimeWidgetEntry: TimelineEntry {
     let date: Date
     let snapshot: DialSnapshot
     let privacyState: WidgetPrivacyState
+    let cycleMarker: CycleMarker?
+}
+
+enum CycleMarker {
+    case period(progress: Double)
+    case ovulation(progress: Double)
+
+    var color: Color {
+        switch self {
+        case .period: return Color(red: 0.85, green: 0.22, blue: 0.28)
+        case .ovulation: return Color(red: 0.95, green: 0.48, blue: 0.65)
+        }
+    }
+
+    var opacity: Double {
+        switch self {
+        case let .period(progress): return max(0.14, min(1, 1 - progress))
+        case let .ovulation(progress):
+            let normalized = max(0, min(1, progress))
+            return max(0.14, normalized <= 0.5 ? normalized * 2 : (1 - normalized) * 2)
+        }
+    }
 }
 
 enum WidgetPrivacyState {
@@ -20,7 +42,8 @@ struct SolstimeWidgetProvider: TimelineProvider {
         SolstimeWidgetEntry(
             date: .now,
             snapshot: .preview,
-            privacyState: .ready
+            privacyState: .ready,
+            cycleMarker: .period(progress: 0.25)
         )
     }
 
@@ -29,7 +52,8 @@ struct SolstimeWidgetProvider: TimelineProvider {
             SolstimeWidgetEntry(
                 date: .now,
                 snapshot: .preview,
-                privacyState: context.isPreview ? .ready : .stale
+                privacyState: context.isPreview ? .ready : .stale,
+                cycleMarker: .period(progress: 0.25)
             )
         )
     }
@@ -38,7 +62,8 @@ struct SolstimeWidgetProvider: TimelineProvider {
         let entry = SolstimeWidgetEntry(
             date: .now,
             snapshot: .preview,
-            privacyState: .stale
+            privacyState: .stale,
+            cycleMarker: .period(progress: 0.25)
         )
         let refresh = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
         completion(Timeline(entries: [entry], policy: .after(refresh)))
@@ -83,9 +108,29 @@ struct SolstimeWidgetView: View {
                     }
                 }
             }
+
+            if let cycleMarker = entry.cycleMarker {
+                Circle()
+                    .fill(cycleMarker.color)
+                    .opacity(cycleMarker.opacity)
+                    .frame(width: 10, height: 10)
+                    .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 0.5))
+                    .accessibilityLabel(cycleMarker.accessibilityLabel)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(12)
+            }
         }
         .containerBackground(for: .widget) {
             Color(red: 0.055, green: 0.075, blue: 0.065)
+        }
+    }
+}
+
+private extension CycleMarker {
+    var accessibilityLabel: String {
+        switch self {
+        case .period: return "Period tracker indicator"
+        case .ovulation: return "Ovulation estimate indicator"
         }
     }
 }
@@ -106,5 +151,5 @@ struct SolstimeWidget: Widget {
 #Preview(as: .systemSmall) {
     SolstimeWidget()
 } timeline: {
-    SolstimeWidgetEntry(date: .now, snapshot: .preview, privacyState: .ready)
+    SolstimeWidgetEntry(date: .now, snapshot: .preview, privacyState: .ready, cycleMarker: .ovulation(progress: 0.5))
 }

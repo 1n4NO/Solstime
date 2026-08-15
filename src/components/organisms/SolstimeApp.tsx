@@ -105,10 +105,10 @@ export function SolstimeApp() {
           </select>
         </label>
       </header>
-      <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} locale={state.locale} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
+      <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} cycle={state.cycle} circadian={state.circadian} locale={state.locale} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       <div className="visually-hidden" aria-live="polite" aria-atomic="true">{timezoneAnnouncement}</div>
       {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
-      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} locale={state.locale} themeId={state.themeId} isWidgetSurface={isWidgetSurface} onLocaleChange={changeLocale} onThemeChange={changeTheme} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
+      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} locale={state.locale} themeId={state.themeId} cycle={state.cycle} circadian={state.circadian} isWidgetSurface={isWidgetSurface} onLocaleChange={changeLocale} onThemeChange={changeTheme} onCycleChange={(cycle) => setState((current) => ({ ...current, cycle }))} onCircadianChange={(circadian) => setState((current) => ({ ...current, circadian }))} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );
 }

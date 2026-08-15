@@ -163,7 +163,7 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 ### ST-215 — Period and ovulation tracker for Pro
 
 - **Status:** in progress
-- **Implemented:** private cycle-entry model, editable history primitives, estimate-only ovulation window calculation, reminder default-off state, export/delete helpers, and uncertainty tests.
+- **Implemented:** private cycle-entry model, editable history primitives, estimate-only ovulation window calculation, reminder default-off state, export/delete helpers, uncertainty tests, and watch-surface cycle markers.
 - **Tier:** Pro
 - **Goal:** Let users record period dates and optional ovulation context privately, as a gentle planning layer rather than a medical promise.
 - **Scope:** Cycle start/end logging, editable history, optional ovulation-window estimates, calendar/dial context, privacy controls, reminders opt-in, export/delete, uncertainty handling, and Pro gating.
@@ -172,14 +172,15 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ## Phase 12 — Connected Solstime
 
-### ST-217 — Sync circadian cycle with supported smart watches for Pro
+### ST-217 — Manual circadian-cycle overlay for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** manual bedtime and wake-up model, overnight window calculation, invalid-input normalization, and overlay tests. No wearable permissions or device sync are part of this ticket.
 - **Tier:** Pro
-- **Goal:** Use supported wearable signals to help users compare their planned day with their observed rhythm.
-- **Scope:** Device capability matrix, permission flow, supported signal ingestion, normalization, missing-data handling, consent, retention, visualization, and disconnect.
+- **Goal:** Let users manually place a gentle circadian window on the dial from bedtime and wake-up time.
+- **Scope:** Personal-tab inputs, overnight window plotting, edit/clear behavior, local persistence, cross-surface snapshot sharing, and copy that avoids medical claims.
 - **Dependencies:** ST-210, ST-212, ST-206, ST-218.
-- **Acceptance criteria:** The product only reads explicitly permitted signals; users see what is collected and why; no unsupported device is presented as compatible; missing/noisy data is labeled; users can disconnect, delete, and revoke access; no medical claims are made.
+- **Acceptance criteria:** Users can enter and edit bedtime and wake-up time; overnight ranges plot correctly; invalid or identical times are rejected; the overlay is labeled as a planning aid; no wearable permissions or sync are requested.
 
 ### ST-218 — Sync data across surfaces for Pro
 

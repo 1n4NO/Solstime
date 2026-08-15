@@ -3,6 +3,8 @@ export type RepeatRule = 'none' | 'daily' | 'weekdays' | 'weekends' | 'weekly' |
 export type OneTimeDate = 'today' | 'tomorrow' | 'custom';
 export type ThemeTier = 'free' | 'pro';
 import type { LocaleId } from './i18n';
+import type { CycleTrackerState } from './cycle';
+import type { ManualCircadianCycle } from './circadian';
 export type AccountTier = 'free' | 'pro' | 'super-pro';
 
 export type TierOption = { id: AccountTier; label: string; price: number; description: string };
@@ -15,8 +17,8 @@ export const TIER_OPTIONS: TierOption[] = [
 
 export const TIER_FEATURES: Record<AccountTier, readonly string[]> = {
   free: ['web-dial', 'free-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'one-calendar'],
-  pro: ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-sync', 'cross-surface-sync', 'period-ovulation'],
-  'super-pro': ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-sync', 'cross-surface-sync', 'period-ovulation', 'family-sharing-3', 'custom-watch-face', 'alarms-notifications', 'dashboard', 'habit-tracker', 'professional-insights', 'journal-prompts'],
+  pro: ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-overlay', 'cross-surface-sync', 'period-ovulation'],
+  'super-pro': ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-overlay', 'cross-surface-sync', 'period-ovulation', 'family-sharing-3', 'custom-watch-face', 'alarms-notifications', 'dashboard', 'habit-tracker', 'professional-insights', 'journal-prompts'],
 };
 export type ThemeId = 'amber' | 'mist' | 'moss' | 'slate' | 'aqua' | 'rosewood' | 'paper' | 'violet' | 'ocean' | 'clay' | 'graphite' | 'seafoam' | 'dusk' | 'touch-grass';
 
@@ -70,6 +72,8 @@ export type SolstimeState = {
   timezones: TimezoneLocation[];
   activeTimezoneId: string;
   plans: Plan[];
+  cycle: CycleTrackerState;
+  circadian: ManualCircadianCycle;
 };
 
 export const DEFAULT_TIMEZONE_ID = 'bengaluru';
@@ -106,5 +110,5 @@ export const EMPTY_PLAN: Omit<Plan, 'id'> = {
 };
 
 export function createInitialState(): SolstimeState {
-  return { version: 1, themeId: 'amber', locale: 'en', timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
+  return { version: 1, themeId: 'amber', locale: 'en', timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [], cycle: { entries: [], estimates: [], remindersEnabled: false }, circadian: { bedtime: '', wakeTime: '', enabled: false } };
 }

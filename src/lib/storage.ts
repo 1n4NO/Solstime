@@ -1,5 +1,7 @@
 import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolstimeState, ThemeId, THEME_OPTIONS, TimezoneLocation } from './product';
 import { LOCALE_OPTIONS, type LocaleId } from './i18n';
+import type { CycleTrackerState } from './cycle';
+import { normalizeCircadianCycle } from './circadian';
 
 const STORAGE_KEY = 'solstime.state.v1';
 const LEGACY_STORAGE_KEY = ['sol', 'stice'].join('') + '.state.v1';
@@ -60,7 +62,9 @@ export function normalizeState(value: unknown): SolstimeState {
   const plans = Array.isArray(value.plans) ? value.plans.map((plan) => normalizePlan(plan, timezoneIds)).filter((plan): plan is Plan => Boolean(plan)) : [];
   const themeId = decodeThemeId(value.themeId) ?? defaults.themeId;
   const locale = LOCALE_OPTIONS.some((option) => option.id === value.locale) ? value.locale as LocaleId : defaults.locale;
-  return { version: 1, themeId, locale, timezones: safeTimezones, activeTimezoneId, plans };
+  const cycle = isRecord(value.cycle) ? value.cycle as unknown as CycleTrackerState : defaults.cycle;
+  const circadian = normalizeCircadianCycle(value.circadian);
+  return { version: 1, themeId, locale, timezones: safeTimezones, activeTimezoneId, plans, cycle, circadian };
 }
 
 export function loadState(): SolstimeState {

@@ -49,7 +49,7 @@ Connect the external commitments and personal cycles that make the dial more use
 
 Make the product continuous across devices and aware of physiological context without making health claims it cannot support.
 
-- ST-217 Circadian-cycle sync with supported smart watches for Pro
+- ST-217 Manual circadian-cycle overlay for Pro
 - ST-218 Cross-surface data sync for Pro
 
 ## Recommended delivery order
