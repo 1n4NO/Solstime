@@ -162,7 +162,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-215 — Period and ovulation tracker for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** private cycle-entry model, editable history primitives, estimate-only ovulation window calculation, reminder default-off state, export/delete helpers, and uncertainty tests.
 - **Tier:** Pro
 - **Goal:** Let users record period dates and optional ovulation context privately, as a gentle planning layer rather than a medical promise.
 - **Scope:** Cycle start/end logging, editable history, optional ovulation-window estimates, calendar/dial context, privacy controls, reminders opt-in, export/delete, uncertainty handling, and Pro gating.
