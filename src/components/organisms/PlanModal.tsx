@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY_PLAN, Plan, PlanType, RepeatRule, TIMEZONE_OPTIONS, TimezoneLocation } from '../../lib/product';
-import { dateKey } from '../../lib/time';
+import { dateKey, localTimeStatus } from '../../lib/time';
 import { validatePlanTimes } from '../../lib/validation';
 
 type PlanDraft = Omit<Plan, 'id'>;
@@ -23,12 +23,14 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
   const [newTimezoneId, setNewTimezoneId] = useState('');
   const [customDate, setCustomDate] = useState('');
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
+  const [ambiguousConfirmed, setAmbiguousConfirmed] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setDraft({ ...EMPTY_PLAN, timezoneId: '' }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError('');
+    setDraft({ ...EMPTY_PLAN, timezoneId: '' }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError(''); setWarning(''); setAmbiguousConfirmed(false);
     previouslyFocused.current = document.activeElement as HTMLElement;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -50,7 +52,12 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
 
   if (!open) return null;
 
-  const update = <K extends keyof PlanDraft>(key: K, value: PlanDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  const update = <K extends keyof PlanDraft>(key: K, value: PlanDraft[K]) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    setAmbiguousConfirmed(false);
+    setError('');
+    setWarning('');
+  };
 
   const addTimezoneToDraft = () => {
     if (!newTimezoneId) return;
@@ -59,6 +66,8 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
 
   const save = () => {
     if (!canSave) return;
+    setError('');
+    setWarning('');
     if (hasEventDraft) {
       if (!draft.startTime || !draft.endTime || !draft.label) return setError('Add a start time, end time, and label.');
       const timeValidation = validatePlanTimes(draft.startTime, draft.endTime);
@@ -69,6 +78,15 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
     const selectedDate = draft.repeatRule === 'none'
       ? draft.date === 'custom' ? customDate : dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata', draft.date === 'tomorrow' ? 1 : 0)
       : undefined;
+    const eventDate = selectedDate ?? dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata');
+    const startStatus = localTimeStatus(eventDate, draft.startTime, selected?.timeZone ?? 'Asia/Kolkata');
+    const endStatus = localTimeStatus(eventDate, draft.endTime, selected?.timeZone ?? 'Asia/Kolkata');
+    if (startStatus === 'nonexistent' || endStatus === 'nonexistent') return setError('One of these times does not exist because of a daylight-saving change.');
+    if ((startStatus === 'ambiguous' || endStatus === 'ambiguous') && !ambiguousConfirmed) {
+      setWarning('This date includes a daylight-saving fall-back hour. Click Save again to use the first occurrence of an ambiguous time.');
+      setAmbiguousConfirmed(true);
+      return;
+    }
     onSave({ ...draft, date: selectedDate }, selected && !savedTimezones.some((timezone) => timezone.id === selected.id) ? selected : undefined);
   };
 
@@ -95,6 +113,7 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
           <details className="timezone-manager"><summary>Manage saved timezones</summary><div className="timezone-manager-list">{savedTimezones.map((saved) => <div className="timezone-manager-row" key={saved.id}><input aria-label={`Name for ${saved.city}`} value={saved.label} onChange={(event) => onRenameTimezone(saved.id, event.target.value)} /><button type="button" onClick={() => onRemoveTimezone(saved.id)} disabled={Boolean(saved.isDefault) || savedTimezones.length === 1}>Remove</button></div>)}</div></details>
           <label className="toggle-row"><span><b>Hard stop</b><small>Protect this time from overrun</small></span><input type="checkbox" checked={draft.hardStop} onChange={(event) => update('hardStop', event.target.checked)} /><i /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
+          {warning && <p className="form-warning" role="status">{warning}</p>}
         </div>
         <div className="modal-footer"><button className="cancel-button" type="button" onClick={onClose}>Cancel</button><button className="save-button" type="button" disabled={!canSave} onClick={save}>Save</button></div>
       </div>

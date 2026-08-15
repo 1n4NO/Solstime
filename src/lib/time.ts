@@ -6,6 +6,9 @@ export const SOLSTICE_LOCATION = {
 export type SolarTimes = {
   sunrise: number;
   sunset: number;
+  sunriseAvailable: boolean;
+  sunsetAvailable: boolean;
+  status: 'normal' | 'polar-day' | 'polar-night';
 };
 
 /** Maps a 24-hour value so noon is at 12 o'clock and midnight at 6 o'clock. */
@@ -44,7 +47,7 @@ function dayOfYear(date: Date): number {
   return Math.floor((current - start) / 86_400_000);
 }
 
-function solarHour(date: Date, latitude: number, longitude: number, timeZone: string, isSunrise: boolean): number {
+function solarHour(date: Date, latitude: number, longitude: number, timeZone: string, isSunrise: boolean): { hour: number | null; reason: 'normal' | 'always-up' | 'always-down' } {
   const zenith = 90.833;
   const longitudeHour = longitude / 15;
   const approximateTime = dayOfYear(date) + ((isSunrise ? 6 : 18) - longitudeHour) / 24;
@@ -59,21 +62,28 @@ function solarHour(date: Date, latitude: number, longitude: number, timeZone: st
   const latitudeRadians = latitude * Math.PI / 180;
   const cosHourAngle = (Math.cos(zenith * Math.PI / 180) - sinDeclination * Math.sin(latitudeRadians)) / (cosDeclination * Math.cos(latitudeRadians));
 
-  if (cosHourAngle < -1 || cosHourAngle > 1) return isSunrise ? 6 : 18;
+  if (cosHourAngle < -1) return { hour: null, reason: 'always-up' };
+  if (cosHourAngle > 1) return { hour: null, reason: 'always-down' };
 
   const hourAngle = Math.acos(cosHourAngle) * 180 / Math.PI;
   const localHourAngle = (isSunrise ? 360 - hourAngle : hourAngle) / 15;
   const universalTime = (localHourAngle + adjustedRightAscension - 0.06571 * approximateTime - 6.622 - longitudeHour + 24) % 24;
   const timezoneOffset = timezoneOffsetMinutes(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12)), timeZone);
-  return (universalTime * 60 + timezoneOffset + 1440) % 1440 / 60;
+  return { hour: (universalTime * 60 + timezoneOffset + 1440) % 1440 / 60, reason: 'normal' };
 }
 
 export function getSolarTimes(date: Date, location = SOLSTICE_LOCATION, timeZone = 'Asia/Kolkata'): SolarTimes {
   const parts = calendarParts(date, timeZone);
   const localDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  const sunriseResult = solarHour(localDate, location.latitude, location.longitude, timeZone, true);
+  const sunsetResult = solarHour(localDate, location.latitude, location.longitude, timeZone, false);
+  const status = sunriseResult.reason === 'always-up' || sunsetResult.reason === 'always-up' ? 'polar-day' : sunriseResult.reason === 'always-down' || sunsetResult.reason === 'always-down' ? 'polar-night' : 'normal';
   return {
-    sunrise: solarHour(localDate, location.latitude, location.longitude, timeZone, true),
-    sunset: solarHour(localDate, location.latitude, location.longitude, timeZone, false),
+    sunrise: sunriseResult.hour ?? (status === 'polar-day' ? 0 : 6),
+    sunset: sunsetResult.hour ?? (status === 'polar-day' ? 24 : 18),
+    sunriseAvailable: sunriseResult.hour !== null,
+    sunsetAvailable: sunsetResult.hour !== null,
+    status,
   };
 }
 
@@ -99,6 +109,21 @@ export function dateKey(date: Date, timeZone: string, dayOffset = 0): string {
 export function localHour(date: Date, timeZone: string): number {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false, hourCycle: 'h23' }).formatToParts(date);
   return Number(parts.find((part) => part.type === 'hour')?.value ?? 0) + Number(parts.find((part) => part.type === 'minute')?.value ?? 0) / 60;
+}
+
+export type LocalTimeStatus = 'valid' | 'nonexistent' | 'ambiguous';
+
+export function localTimeStatus(dateValue: string, timeValue: string, timeZone: string): LocalTimeStatus {
+  const [year, month, day] = dateValue.split('-').map(Number);
+  const [hour, minute] = timeValue.split(':').map(Number);
+  const localAsUtc = Date.UTC(year, month - 1, day, hour, minute);
+  const offsets = new Set<number>();
+  for (let offset = -2; offset <= 2; offset += 1) offsets.add(timezoneOffsetMinutes(new Date(localAsUtc + offset * 86_400_000), timeZone));
+  const matches = Array.from(offsets).filter((offset) => {
+    const candidate = new Date(localAsUtc - offset * 60_000);
+    return dateKey(candidate, timeZone) === dateValue && formatTime(candidate, timeZone) === timeValue;
+  });
+  return matches.length === 0 ? 'nonexistent' : matches.length > 1 ? 'ambiguous' : 'valid';
 }
 
 export function formatSolarTime(hour: number): string {

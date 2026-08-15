@@ -15,9 +15,11 @@ export function TimeDial({ timezone, timezones, isSwitching, onTimezoneChange, o
   const currentHour = localHour(now, timezone.timeZone);
   const solarTimes = getSolarTimes(now, timezone, timezone.timeZone);
   const moonPhase = getMoonPhase(now);
+  const sunriseAngle = solarTimes.status === 'polar-day' ? 0 : solarTimes.status === 'polar-night' ? 360 : dialGradientAngle(solarTimes.sunrise);
+  const sunsetAngle = solarTimes.status === 'polar-day' ? 360 : solarTimes.status === 'polar-night' ? 0 : dialGradientAngle(solarTimes.sunset);
   const dialStyle = {
-    '--sunrise-angle': `${dialGradientAngle(solarTimes.sunrise)}deg`,
-    '--sunset-angle': `${dialGradientAngle(solarTimes.sunset)}deg`,
+    '--sunrise-angle': `${sunriseAngle}deg`,
+    '--sunset-angle': `${sunsetAngle}deg`,
   } as React.CSSProperties;
 
   useEffect(() => {
@@ -29,12 +31,12 @@ export function TimeDial({ timezone, timezones, isSwitching, onTimezoneChange, o
     <section className="dial-stage" aria-label="Solstice 24 hour planner">
       <div className="dial-wrap">
         <div className="dial-shadow" />
-        <div className="dial" style={dialStyle} role="img" aria-label={`24 hour dial showing daylight from ${formatSolarTime(solarTimes.sunrise)} to ${formatSolarTime(solarTimes.sunset)}`}>
+        <div className={`dial dial--${solarTimes.status}`} style={dialStyle} role="img" aria-label={solarTimes.status === 'normal' ? `24 hour dial showing daylight from ${formatSolarTime(solarTimes.sunrise)} to ${formatSolarTime(solarTimes.sunset)}` : `24 hour dial showing ${solarTimes.status === 'polar-day' ? 'continuous daylight' : 'continuous night'}`}>
           <div className={`dial-transition-layer${isSwitching ? ' dial-transition-layer--switching' : ''}`}>
             <div className="night-arc" />
             <div className="daylight-arc" />
-            <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`Sunrise at ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">Sunrise <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>
-            <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`Sunset at ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">Sunset <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>
+            {solarTimes.sunriseAvailable && <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`Sunrise at ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">Sunrise <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>}
+            {solarTimes.sunsetAvailable && <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`Sunset at ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">Sunset <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>}
             <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }}><span /></div>
             <div className="ticks">{ticks.map((index) => <DialTick key={index} index={index} />)}</div>
           </div>
