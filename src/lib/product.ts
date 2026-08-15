@@ -1,14 +1,42 @@
 export type PlanType = 'meeting' | 'event' | 'sync-up' | 'stand-up';
 export type RepeatRule = 'none' | 'daily' | 'weekdays' | 'weekends' | 'weekly' | 'monthly' | 'annual';
 export type OneTimeDate = 'today' | 'tomorrow' | 'custom';
-export type ThemeId = 'amber' | 'mist' | 'moss';
+export type ThemeTier = 'free' | 'pro';
+import type { LocaleId } from './i18n';
+export type AccountTier = 'free' | 'pro' | 'super-pro';
 
-export type ThemeOption = { id: ThemeId; label: string; description: string };
+export type TierOption = { id: AccountTier; label: string; price: number; description: string };
+
+export const TIER_OPTIONS: TierOption[] = [
+  { id: 'free', label: 'Free', price: 0, description: 'The essential day dial and orientation tools' },
+  { id: 'pro', label: 'Pro', price: 9.99, description: 'Your day across every surface' },
+  { id: 'super-pro', label: 'Super Pro', price: 24.99, description: 'Shared planning, habits, and deeper reflection' },
+];
+
+export const TIER_FEATURES: Record<AccountTier, readonly string[]> = {
+  free: ['web-dial', 'free-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'one-calendar'],
+  pro: ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-sync', 'cross-surface-sync', 'period-ovulation'],
+  'super-pro': ['web-dial', 'free-themes', 'pro-themes', 'moon-phase', 'weather', 'uv-index', 'mac-widget', 'chrome-extensions', 'multiple-calendars', 'iphone-app', 'iphone-widget', 'apple-watch', 'circadian-sync', 'cross-surface-sync', 'period-ovulation', 'family-sharing-3', 'custom-watch-face', 'alarms-notifications', 'dashboard', 'habit-tracker', 'professional-insights', 'journal-prompts'],
+};
+export type ThemeId = 'amber' | 'mist' | 'moss' | 'slate' | 'aqua' | 'rosewood' | 'paper' | 'violet' | 'ocean' | 'clay' | 'graphite' | 'seafoam' | 'dusk' | 'touch-grass';
+
+export type ThemeOption = { id: ThemeId; label: string; description: string; tier: ThemeTier };
 
 export const THEME_OPTIONS: ThemeOption[] = [
-  { id: 'amber', label: 'Amber', description: 'Warm light on deep green' },
-  { id: 'mist', label: 'Mist', description: 'Cool grey with soft blue' },
-  { id: 'moss', label: 'Moss', description: 'Quiet green with pale gold' },
+  { id: 'amber', label: 'Amber', description: 'Warm light on deep green', tier: 'free' },
+  { id: 'mist', label: 'Mist', description: 'Cool grey with soft blue', tier: 'free' },
+  { id: 'moss', label: 'Moss', description: 'Quiet green with pale gold', tier: 'free' },
+  { id: 'slate', label: 'Slate', description: 'Blue-grey and mineral', tier: 'pro' },
+  { id: 'aqua', label: 'Aqua', description: 'Clear water and cool stone', tier: 'pro' },
+  { id: 'rosewood', label: 'Rosewood', description: 'Dusty rose and dark wood', tier: 'pro' },
+  { id: 'paper', label: 'Paper', description: 'Warm paper and graphite', tier: 'pro' },
+  { id: 'violet', label: 'Violet', description: 'Deep violet and lavender', tier: 'pro' },
+  { id: 'ocean', label: 'Ocean', description: 'Deep blue and sea glass', tier: 'pro' },
+  { id: 'clay', label: 'Clay', description: 'Terracotta and sage', tier: 'pro' },
+  { id: 'graphite', label: 'Graphite', description: 'Charcoal and silver', tier: 'pro' },
+  { id: 'seafoam', label: 'Seafoam', description: 'Soft green and blue', tier: 'pro' },
+  { id: 'dusk', label: 'Dusk', description: 'Indigo and quiet lilac', tier: 'pro' },
+  { id: 'touch-grass', label: 'Touch Grass', description: 'Living grass texture and moss', tier: 'pro' },
 ];
 
 export type TimezoneLocation = {
@@ -38,6 +66,7 @@ export type Plan = {
 export type SolstimeState = {
   version: 1;
   themeId: ThemeId;
+  locale: LocaleId;
   timezones: TimezoneLocation[];
   activeTimezoneId: string;
   plans: Plan[];
@@ -77,5 +106,5 @@ export const EMPTY_PLAN: Omit<Plan, 'id'> = {
 };
 
 export function createInitialState(): SolstimeState {
-  return { version: 1, themeId: 'amber', timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
+  return { version: 1, themeId: 'amber', locale: 'en', timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
 }

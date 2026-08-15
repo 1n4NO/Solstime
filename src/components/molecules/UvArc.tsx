@@ -1,18 +1,20 @@
 import { useId, useState } from 'react';
 import type { UvReading } from '../../lib/uv';
 import { uvCategory, uvColor } from '../../lib/uv';
+import { copy, type LocaleId } from '../../lib/i18n';
 
-type UvArcProps = { readings: UvReading[]; sunrise: number; sunset: number };
+type UvArcProps = { readings: UvReading[]; sunrise: number; sunset: number; locale: LocaleId };
 
-export function UvArc({ readings, sunrise, sunset }: UvArcProps) {
+export function UvArc({ readings, sunrise, sunset, locale }: UvArcProps) {
   const [hoveredReading, setHoveredReading] = useState<UvReading | null>(null);
   const gradientPrefix = `uv-gradient-${useId().replaceAll(':', '')}`;
   const daylightReadings = readings.filter((reading) => reading.minutes < sunset && reading.minutes + 60 > sunrise && reading.value > 0);
+  const text = copy(locale);
   if (!daylightReadings.length) return null;
   const peak = Math.max(...daylightReadings.map((reading) => reading.value));
   const firstReadingStart = Math.max(daylightReadings[0].minutes, sunrise);
 
-  return <div className="uv-layer" role="img" aria-label={`Daylight UV index ${Math.round(peak)}, ${uvCategory(peak).toLowerCase()}`}>
+  return <div className="uv-layer" role="img" aria-label={`UV ${Math.round(peak)}, ${text.categories[uvCategory(peak).toLowerCase()] ?? uvCategory(peak).toLowerCase()}`}>
     <svg className="uv-arc" viewBox="0 0 100 100" aria-hidden="true">
       <defs>{daylightReadings.map((reading, index) => {
         const nextReading = daylightReadings[index + 1] ?? reading;
@@ -26,11 +28,11 @@ export function UvArc({ readings, sunrise, sunset }: UvArcProps) {
         const hitPath = arcPath(start, end, 17.45);
         return <g key={reading.minutes}>
           <path d={path} fill={`url(#${gradientPrefix}-${reading.minutes})`} opacity=".92" aria-hidden="true" />
-          <path className="uv-hit" d={hitPath} fill="none" stroke="transparent" strokeWidth="6" aria-label={`UV ${reading.value.toFixed(1)}, ${uvCategory(reading.value).toLowerCase()}`} onPointerEnter={() => setHoveredReading(reading)} onPointerLeave={() => setHoveredReading(null)} />
+          <path className="uv-hit" d={hitPath} fill="none" stroke="transparent" strokeWidth="6" aria-label={`UV ${reading.value.toFixed(1)}, ${text.categories[uvCategory(reading.value).toLowerCase()] ?? uvCategory(reading.value).toLowerCase()}`} onPointerEnter={() => setHoveredReading(reading)} onPointerLeave={() => setHoveredReading(null)} />
         </g>;
       })}
     </svg>
-    {hoveredReading && <span className="uv-tooltip" style={tooltipPosition(hoveredReading.minutes)} role="status">UV {hoveredReading.value.toFixed(1)} · {uvCategory(hoveredReading.value)}</span>}
+    {hoveredReading && <span className="uv-tooltip" style={tooltipPosition(hoveredReading.minutes)} role="status">UV {hoveredReading.value.toFixed(1)} · {text.categories[uvCategory(hoveredReading.value).toLowerCase()] ?? uvCategory(hoveredReading.value)}</span>}
   </div>;
 }
 

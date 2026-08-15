@@ -6,6 +6,7 @@ import { PlanModal } from './PlanModal';
 import { TimeDial } from './TimeDial';
 import { createInitialState, Plan, SolstimeState, THEME_OPTIONS, TimezoneLocation } from '../../lib/product';
 import { loadState, saveState } from '../../lib/storage';
+import { copy, localeTag, LOCALE_OPTIONS, type LocaleId } from '../../lib/i18n';
 
 export function SolstimeApp() {
   const [state, setState] = useState<SolstimeState>(() => createInitialState());
@@ -17,6 +18,7 @@ export function SolstimeApp() {
   const switchTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => { setState(loadState()); setHydrated(true); }, []);
+  useEffect(() => { document.documentElement.lang = state.locale; document.documentElement.dir = state.locale === 'ar' ? 'rtl' : 'ltr'; }, [state.locale]);
   useEffect(() => { if (hydrated) setStorageError(!saveState(state)); }, [hydrated, state]);
   useEffect(() => () => { if (switchTimer.current) window.clearTimeout(switchTimer.current); }, []);
 
@@ -25,7 +27,7 @@ export function SolstimeApp() {
   const changeTimezone = (id: string) => {
     if (id === state.activeTimezoneId) return;
     const nextTimezone = state.timezones.find((timezone) => timezone.id === id);
-    if (nextTimezone) setTimezoneAnnouncement(`Showing ${nextTimezone.city} time`);
+    if (nextTimezone) setTimezoneAnnouncement(copy(state.locale).showingTime(nextTimezone.city));
     setIsSwitching(true);
     setState((current) => ({ ...current, activeTimezoneId: id }));
     if (switchTimer.current) window.clearTimeout(switchTimer.current);
@@ -63,23 +65,43 @@ export function SolstimeApp() {
     setState((current) => ({ ...current, themeId }));
   };
 
+  const changeLocale = (locale: LocaleId) => setState((current) => ({ ...current, locale }));
+
   if (!activeTimezone) return null;
+
+  const freeThemes = THEME_OPTIONS.filter((theme) => theme.tier === 'free');
+  const proThemes = THEME_OPTIONS.filter((theme) => theme.tier === 'pro');
+  // Preview mode stays enabled while the theme system is being reviewed.
+  // Entitlement gating is applied in the final release step (ST-206).
+  const themePreviewMode = true;
+  const languageCopy = copy(state.locale);
 
   return (
     <main className="app-shell" data-theme={state.themeId}>
       <header className="topbar">
         <a className="wordmark" href="#" aria-label="Solstime home"><BrandMark /><span>solstime</span></a>
         <label className="theme-picker">
-          <span>Theme</span>
-          <select value={state.themeId} onChange={(event) => changeTheme(event.target.value as SolstimeState['themeId'])} aria-label="Choose theme">
-            {THEME_OPTIONS.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}
+          <span>{languageCopy.theme}</span>
+          <select value={state.themeId} onChange={(event) => changeTheme(event.target.value as SolstimeState['themeId'])} aria-label={languageCopy.chooseTheme}>
+            <optgroup label={languageCopy.free}>
+              {freeThemes.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}
+            </optgroup>
+            <optgroup label={languageCopy.pro}>
+              {proThemes.map((theme) => <option key={theme.id} value={theme.id} disabled={!themePreviewMode}>{theme.label} · Pro</option>)}
+            </optgroup>
+          </select>
+        </label>
+        <label className="theme-picker">
+          <span>{languageCopy.language}</span>
+          <select value={state.locale} onChange={(event) => changeLocale(event.target.value as LocaleId)} aria-label={languageCopy.language}>
+            {LOCALE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
           </select>
         </label>
       </header>
-      <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
+      <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} locale={state.locale} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       <div className="visually-hidden" aria-live="polite" aria-atomic="true">{timezoneAnnouncement}</div>
       {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
-      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
+      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} locale={state.locale} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );
 }

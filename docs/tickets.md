@@ -15,7 +15,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-202 — Support 10 languages
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** ten-locale registry, persisted language preference, language selector, document direction, translated theme controls, modal labels, timezone/date controls, event/solar/UV/current-time tooltip labels, and locale-aware clock/date formatting.
 - **Tier:** Free and Pro
 - **Goal:** Make the product usable in ten launch languages without duplicating UI logic.
 - **Scope:** Locale registry, translation keys, language selector, fallback behavior, pluralization, date/time formatting, timezone names, long-label layout, RTL readiness, translated metadata, and translation QA workflow.
@@ -44,7 +45,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-205 — Ten Pro-tier themes
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** ten named Pro theme definitions plus the special Touch Grass theme are registered and selectable in preview mode; entitlement unlock remains intentionally deferred to ST-206, the final release gate.
 - **Tier:** Pro
 - **Goal:** Give Pro users ten additional themes with a meaningful but coherent visual range.
 - **Scope:** Ten Pro themes, theme preview gallery, locked-state treatment for Free users, and cross-surface theme propagation.
@@ -59,6 +61,17 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 - **Scope:** Account entitlement model, subscription state, grace period, restore/purchase state, feature flags, offline cache rules, upgrade prompts, and server-authoritative checks.
 - **Dependencies:** None.
 - **Acceptance criteria:** A user's tier is consistent across surfaces; Pro content cannot be unlocked by client-only state; expired, pending, restored, offline, and signed-out states are handled; the feature matrix is documented and testable.
+
+### ST-219 — Super Pro tier and premium capability model
+
+- **Status:** in progress
+- **Implemented:** shared Free, Pro, and Super Pro tier definitions with prices, descriptions, and capability matrix; enforcement remains with ST-206.
+- **Tier:** Super Pro
+- **Price:** $24.99
+- **Goal:** Define the highest-value tier for shared planning, personal routines, and deeper reflection.
+- **Scope:** Sharing with three family/friends, customizable watch face, alarms and notifications, dashboard access, habit tracker, Professional Insights, Journal Prompts, entitlement rules, upgrade messaging, privacy controls, and cross-surface capability mapping.
+- **Dependencies:** ST-206, ST-218.
+- **Acceptance criteria:** Super Pro capabilities are represented in the feature matrix and landing page; sharing is limited to three invited people; watch-face customization, alarms, dashboard, habits, insights, and prompts have clear ownership and privacy states; Super Pro cannot be activated through client-only state; pricing and upgrade copy are consistent across surfaces.
 
 ## Phase 9 — Desktop and browser surfaces
 

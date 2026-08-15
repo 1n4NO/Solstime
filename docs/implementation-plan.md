@@ -15,8 +15,9 @@ Establish the free/Pro capability model and make the tier boundary visible in th
 
 - ST-203 Theme system foundation and theme preview
 - ST-204 Three free-tier themes
-- ST-205 Ten Pro-tier themes
+- ST-205 Ten Pro-tier themes plus Touch Grass
 - ST-206 Entitlements, upgrade state, and tier-aware feature gating
+- ST-219 Super Pro tier and premium capability model ($24.99)
 
 ## Phase 9 — Desktop and browser surfaces
 
@@ -56,10 +57,11 @@ Make the product continuous across devices and aware of physiological context wi
 1. ST-201, ST-203, ST-206, ST-218 — brand, design tokens, entitlements, and data foundations.
 2. ST-202 — localization infrastructure before new surfaces duplicate copy.
 3. ST-204, ST-205 — theme inventory and tier validation.
-4. ST-213, ST-214 — calendar model and external authorization.
-5. ST-207, ST-208, ST-209 — desktop and browser delivery.
-6. ST-210, ST-211, ST-212 — mobile and watch surfaces.
-7. ST-215, ST-217 — body-aware and circadian integrations, with privacy review.
+4. ST-219 — Super Pro capability model and premium surface planning.
+5. ST-213, ST-214 — calendar model and external authorization.
+6. ST-207, ST-208, ST-209 — desktop and browser delivery.
+7. ST-210, ST-211, ST-212 — mobile and watch surfaces.
+8. ST-215, ST-217 — body-aware and circadian integrations, with privacy review.
 
 ## Cross-phase release gates
 

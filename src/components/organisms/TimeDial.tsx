@@ -14,10 +14,11 @@ import { fetchWeatherReadings } from '../../lib/weather';
 import type { WeatherReading } from '../../lib/weather';
 import { WeatherLayer } from '../molecules/WeatherLayer';
 import { NoonMidnightMark } from '../atoms/NoonMidnightMark';
+import { copy, localeTag, type LocaleId } from '../../lib/i18n';
 
-type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; plans: Plan[]; isSwitching: boolean; onTimezoneChange: (id: string) => void; onAdd: () => void };
+type TimeDialProps = { timezone: TimezoneLocation; timezones: TimezoneLocation[]; plans: Plan[]; locale: LocaleId; isSwitching: boolean; onTimezoneChange: (id: string) => void; onAdd: () => void };
 
-export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneChange, onAdd }: TimeDialProps) {
+export function TimeDial({ timezone, timezones, plans, locale, isSwitching, onTimezoneChange, onAdd }: TimeDialProps) {
   const [now, setNow] = useState(() => new Date());
   const [is24Hour, setIs24Hour] = useState(true);
   const [viewDate, setViewDate] = useState(() => dateKey(new Date(), timezone.timeZone));
@@ -33,6 +34,7 @@ export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneCh
   const currentMinutes = Math.round(currentHour * 60);
   const currentUv = nearestReading(uvReadings, currentMinutes);
   const currentWeather = nearestReading(weatherReadings, currentMinutes);
+  const text = copy(locale);
   const sunriseAngle = solarTimes.status === 'polar-day' ? 0 : solarTimes.status === 'polar-night' ? 360 : dialGradientAngle(solarTimes.sunrise);
   const sunsetAngle = solarTimes.status === 'polar-day' ? 360 : solarTimes.status === 'polar-night' ? 0 : dialGradientAngle(solarTimes.sunset);
   const dialStyle = {
@@ -77,24 +79,24 @@ export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneCh
             <div className="night-arc" />
             <div className="daylight-arc" />
           </div>
-          {solarTimes.status === 'normal' && <div className={`uv-rotating-layer${isSwitching ? ' uv-rotating-layer--switching' : ''}`}><UvArc readings={uvReadings} sunrise={solarTimes.sunrise * 60} sunset={solarTimes.sunset * 60} /></div>}
+          {solarTimes.status === 'normal' && <div className={`uv-rotating-layer${isSwitching ? ' uv-rotating-layer--switching' : ''}`}><UvArc readings={uvReadings} sunrise={solarTimes.sunrise * 60} sunset={solarTimes.sunset * 60} locale={locale} /></div>}
           {weatherReadings.length > 0 && <div className={`weather-rotating-layer${isSwitching ? ' weather-rotating-layer--switching' : ''}`}><WeatherLayer readings={weatherReadings} /></div>}
           <div className="dial-foreground-layer">
-            {solarTimes.sunriseAvailable && <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`Sunrise at ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">Sunrise <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>}
-            {solarTimes.sunsetAvailable && <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`Sunset at ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">Sunset <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>}
-            <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }} aria-label={`Current time ${formatTime(now, timezone.timeZone, !is24Hour)}`}>
+            {solarTimes.sunriseAvailable && <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`${text.sunrise} ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">{text.sunrise} <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>}
+            {solarTimes.sunsetAvailable && <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`${text.sunset} ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">{text.sunset} <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>}
+            <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }} aria-label={`Current time ${formatTime(now, timezone.timeZone, !is24Hour, localeTag(locale))}`}>
               <span />
               <span className="now-tooltip" role="status">
-                <b>{formatTime(now, timezone.timeZone, !is24Hour)}</b>
+                <b>{formatTime(now, timezone.timeZone, !is24Hour, localeTag(locale))}</b>
                 {currentUv && <span>UV {currentUv.value.toFixed(1)}</span>}
-                {currentWeather && <span>{Math.round(currentWeather.temperature)}°</span>}
-                {currentWeather && (currentWeather.rain > 0 || currentWeather.snow > 0) && <span>{currentWeather.snow > 0 ? `snow ${currentWeather.snow.toFixed(1)} mm` : `precip ${Math.round(currentWeather.rain)}%`}</span>}
+                {currentWeather && <span>{text.temperature}: {Math.round(currentWeather.temperature)}°</span>}
+                {currentWeather && (currentWeather.rain > 0 || currentWeather.snow > 0) && <span>{currentWeather.snow > 0 ? `${text.snow} ${currentWeather.snow.toFixed(1)} mm` : `${text.precipitation} ${Math.round(currentWeather.rain)}%`}</span>}
               </span>
             </div>
             <div className="ticks">{ticks.map((index) => <DialTick key={index} index={index} />)}</div>
           </div>
-          <EventArcLayer segments={eventSegments} currentTimezoneCity={timezone.city} isSwitching={isSwitching} activeEventId={activeEvent?.planId} onActiveChange={setActiveEvent} />
-          <DialCore time={formatTime(now, timezone.timeZone, !is24Hour)} is24Hour={is24Hour} dateLabel={formatDateLabel(viewDateObject, timezone.timeZone)} dateValue={viewDate} timezone={timezone} timezones={timezones} moonPhase={moonPhase} onTimezoneChange={onTimezoneChange} onToggleTimeFormat={() => setIs24Hour((current) => !current)} onDateChange={setViewDate} onShiftDate={(dayOffset) => setViewDate((current) => shiftDateKey(current, dayOffset))} onAdd={onAdd} />
+          <EventArcLayer segments={eventSegments} currentTimezoneCity={timezone.city} locale={locale} isSwitching={isSwitching} activeEventId={activeEvent?.planId} onActiveChange={setActiveEvent} />
+          <DialCore time={formatTime(now, timezone.timeZone, !is24Hour, localeTag(locale))} is24Hour={is24Hour} dateLabel={formatDateLabel(viewDateObject, timezone.timeZone, localeTag(locale))} dateValue={viewDate} timezone={timezone} timezones={timezones} moonPhase={moonPhase} locale={locale} onTimezoneChange={onTimezoneChange} onToggleTimeFormat={() => setIs24Hour((current) => !current)} onDateChange={setViewDate} onShiftDate={(dayOffset) => setViewDate((current) => shiftDateKey(current, dayOffset))} onAdd={onAdd} />
         </div>
         <div className="dial-label dial-label--noon"><NoonMidnightMark type="sun" /><span>12</span></div>
         <div className="dial-label dial-label--midnight"><span>00</span><NoonMidnightMark type="moon" /></div>

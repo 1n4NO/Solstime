@@ -87,8 +87,8 @@ export function getSolarTimes(date: Date, location = DEFAULT_LOCATION, timeZone 
   };
 }
 
-export function formatTime(date: Date, timeZone = 'Asia/Kolkata', hour12 = false): string {
-  const formatted = date.toLocaleTimeString('en-IN', {
+export function formatTime(date: Date, timeZone = 'Asia/Kolkata', hour12 = false, locale = 'en-IN'): string {
+  const formatted = date.toLocaleTimeString(locale, {
     timeZone,
     hour: '2-digit',
     minute: '2-digit',
@@ -101,8 +101,8 @@ export function formatDate(date: Date, timeZone: string): string {
   return date.toLocaleDateString('en-IN', { timeZone, day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export function formatDateLabel(date: Date, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat('en-US', { timeZone, month: 'short', day: 'numeric', weekday: 'short' }).formatToParts(date);
+export function formatDateLabel(date: Date, timeZone: string, locale = 'en-US'): string {
+  const parts = new Intl.DateTimeFormat(locale, { timeZone, month: 'short', day: 'numeric', weekday: 'short' }).formatToParts(date);
   const month = parts.find((part) => part.type === 'month')?.value ?? '';
   const day = parts.find((part) => part.type === 'day')?.value ?? '';
   const weekday = parts.find((part) => part.type === 'weekday')?.value.toUpperCase() ?? '';

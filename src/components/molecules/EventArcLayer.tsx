@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import type { EventSegment } from '../../lib/events';
+import { copy, type LocaleId } from '../../lib/i18n';
 
-type EventArcLayerProps = { segments: EventSegment[]; currentTimezoneCity: string; isSwitching: boolean; onActiveChange: (segment: EventSegment | null) => void; activeEventId?: string };
+type EventArcLayerProps = { segments: EventSegment[]; currentTimezoneCity: string; locale: LocaleId; isSwitching: boolean; onActiveChange: (segment: EventSegment | null) => void; activeEventId?: string };
 
 const OUTER_RADIUS = 42;
 const LANE_WIDTH = 6.5;
@@ -49,13 +50,14 @@ function displayTime(minutes: number): string {
   return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
 }
 
-export function EventArcLayer({ segments, currentTimezoneCity, isSwitching, onActiveChange, activeEventId }: EventArcLayerProps) {
+export function EventArcLayer({ segments, currentTimezoneCity, locale, isSwitching, onActiveChange, activeEventId }: EventArcLayerProps) {
   const [hoveredId, setHoveredId] = useState<string>();
   const [pinnedId, setPinnedId] = useState<string>();
   useEffect(() => {
     if (!activeEventId) setPinnedId(undefined);
   }, [activeEventId]);
   const active = segments.find((segment) => segment.planId === (pinnedId ?? hoveredId ?? activeEventId));
+  const text = copy(locale);
   const activePosition = active ? midpoint(active) : null;
 
   return (
@@ -64,7 +66,7 @@ export function EventArcLayer({ segments, currentTimezoneCity, isSwitching, onAc
       <svg className="event-arc-layer" viewBox="0 0 100 100" aria-label="Planned events">
         {segments.map((segment) => {
           const path = annularPath(segment);
-          const label = `${segment.label}, ${displayTime(segment.displayStartMinutes)} to ${displayTime(segment.displayEndMinutes)}, ${segment.planType}`;
+          const label = `${segment.label}, ${displayTime(segment.displayStartMinutes)} to ${displayTime(segment.displayEndMinutes)}, ${text.types[segment.planType]}`;
           return (
             <g key={`${segment.planId}-${segment.startMinutes}`}>
               <path className="event-arc" d={path} fill={segment.color} stroke="var(--event-border)" strokeWidth="0.34" strokeLinejoin="round" aria-hidden="true" />
@@ -77,7 +79,7 @@ export function EventArcLayer({ segments, currentTimezoneCity, isSwitching, onAc
       </div>
       {active && activePosition && <div className="event-popover" style={{ left: `${activePosition.left}%`, top: `${activePosition.top}%` }} role="status">
         <b>{active.label || 'Untitled plan'}</b>
-        <span>{displayTime(active.displayStartMinutes)}–{displayTime(active.displayEndMinutes)} · {active.planType}</span>
+        <span>{displayTime(active.displayStartMinutes)}–{displayTime(active.displayEndMinutes)} · {text.types[active.planType]}</span>
         {active.sourceTimezoneCity !== currentTimezoneCity && <span>{displayTime(active.sourceStartMinutes)}–{displayTime(active.sourceEndMinutes)} · {active.sourceTimezoneCity}</span>}
       </div>}
     </>
