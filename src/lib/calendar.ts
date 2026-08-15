@@ -8,6 +8,8 @@ export type CalendarConnection = {
   calendarId: string;
   calendarName: string;
   status: CalendarConnectionStatus;
+  color?: string;
+  visible: boolean;
   lastSyncedAt?: string;
   errorCode?: 'expired-token' | 'rate-limited' | 'provider-unavailable' | 'unknown';
 };
@@ -29,6 +31,13 @@ export type CalendarSyncSnapshot = {
   events: ExternalCalendarEvent[];
   syncedAt?: string;
   stale: boolean;
+};
+
+export type CalendarSyncResult = {
+  connectionId: string;
+  events: ExternalCalendarEvent[];
+  status: 'ok' | 'error';
+  errorCode?: CalendarConnection['errorCode'];
 };
 
 export type ProviderEventInput = {
@@ -87,6 +96,32 @@ export function eventsForTimezone(
     displayStart: formatEventTime(event.start, timeZone),
     displayEnd: formatEventTime(event.end, timeZone),
   }));
+}
+
+export function visibleEvents(snapshot: CalendarSyncSnapshot): ExternalCalendarEvent[] {
+  const visibleConnections = new Set(
+    snapshot.connections.filter((connection) => connection.visible && connection.status === 'connected').map((connection) => connection.id),
+  );
+  return snapshot.events.filter((event) => visibleConnections.has(event.connectionId));
+}
+
+export function mergeSyncResults(
+  connections: CalendarConnection[],
+  results: CalendarSyncResult[],
+  syncedAt = new Date().toISOString(),
+): CalendarSyncSnapshot {
+  const events = results.flatMap((result) => result.status === 'ok' ? result.events : []);
+  const hasProviderFailure = results.some((result) => result.status === 'error');
+  return {
+    connections: connections.map((connection) => {
+      const result = results.find((candidate) => candidate.connectionId === connection.id);
+      if (!result || result.status === 'ok') return { ...connection, status: 'connected', lastSyncedAt: syncedAt, errorCode: undefined };
+      return { ...connection, status: 'error', errorCode: result.errorCode };
+    }),
+    events,
+    syncedAt,
+    stale: hasProviderFailure,
+  };
 }
 
 export function isCalendarSnapshotStale(snapshot: CalendarSyncSnapshot, now = Date.now(), maxAgeMs = 15 * 60_000): boolean {

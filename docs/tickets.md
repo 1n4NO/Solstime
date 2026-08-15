@@ -152,7 +152,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-214 — Sync multiple Google and Outlook calendars for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** multi-calendar visibility and source metadata, deterministic visible-event filtering, and partial-failure-safe sync result merging.
 - **Tier:** Pro
 - **Goal:** Give Pro users one coherent view across multiple work and personal calendars.
 - **Scope:** Multiple accounts/calendars, provider color mapping, visibility controls, conflict handling, sync scheduling, rate-limit handling, and per-calendar disconnect.
