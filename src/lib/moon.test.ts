@@ -12,10 +12,16 @@ describe('getMoonPhase', () => {
   it('keeps the cycle moving through full moon into waning phases', () => {
     const beforeFull = getMoonPhase(new Date('2026-08-27T12:00:00.000Z'));
     const full = getMoonPhase(new Date('2026-08-28T12:00:00.000Z'));
-    const afterFull = getMoonPhase(new Date('2026-08-29T12:00:00.000Z'));
+    const afterFull = getMoonPhase(new Date('2026-08-31T12:00:00.000Z'));
 
     expect(beforeFull.illumination).toBeLessThan(full.illumination);
     expect(afterFull.illumination).toBeLessThan(full.illumination);
     expect(afterFull.name).toBe('Waning gibbous');
+  });
+
+  it('does not label adjacent dates as the exact full moon', () => {
+    expect(getMoonPhase(new Date('2026-08-28T12:00:00.000Z')).name).toBe('Full moon');
+    expect(getMoonPhase(new Date('2026-08-27T12:00:00.000Z')).name).not.toBe('Full moon');
+    expect(getMoonPhase(new Date('2026-08-29T12:00:00.000Z')).name).not.toBe('Full moon');
   });
 });
