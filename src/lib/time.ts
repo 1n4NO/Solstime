@@ -91,12 +91,9 @@ export function formatDate(date: Date, timeZone: string): string {
 }
 
 export function dateKey(date: Date, timeZone: string, dayOffset = 0): string {
-  const shifted = new Date(date.getTime() + dayOffset * 86_400_000);
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(shifted);
-  const year = parts.find((part) => part.type === 'year')?.value;
-  const month = parts.find((part) => part.type === 'month')?.value;
-  const day = parts.find((part) => part.type === 'day')?.value;
-  return `${year}-${month}-${day}`;
+  const current = calendarParts(date, timeZone);
+  const shifted = new Date(Date.UTC(current.year, current.month - 1, current.day + dayOffset));
+  return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
 }
 
 export function localHour(date: Date, timeZone: string): number {
