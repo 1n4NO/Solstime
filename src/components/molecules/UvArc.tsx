@@ -18,7 +18,7 @@ export function UvArc({ readings, sunrise, sunset }: UvArcProps) {
         const nextReading = daylightReadings[index + 1] ?? reading;
         return <linearGradient key={reading.minutes} id={`${gradientPrefix}-${reading.minutes}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={uvColor(reading.value)} /><stop offset="100%" stopColor={uvColor(nextReading.value)} /></linearGradient>;
       })}</defs>
-      {firstReadingStart > sunrise && <path className="uv-gap-arc" d={arcPath(sunrise, firstReadingStart, 17.45)} fill="none" stroke="#6c756d" strokeWidth="1.5" strokeLinecap="butt" />}
+      {firstReadingStart > sunrise && <path className="uv-gap-arc" d={arcPath(sunrise, firstReadingStart, 17.45)} fill="none" stroke="var(--uv-gap)" strokeWidth="1.5" strokeLinecap="butt" />}
       {daylightReadings.map((reading) => {
         const start = Math.max(reading.minutes, sunrise);
         const end = Math.min(reading.minutes + 60, sunset);

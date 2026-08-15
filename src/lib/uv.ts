@@ -22,9 +22,9 @@ export function uvCategory(value: number): string {
 }
 
 export function uvColor(value: number): string {
-  if (value < 3) return '#a9c7a4';
-  if (value < 6) return '#f1b56e';
-  if (value < 8) return '#e49a67';
-  if (value < 11) return '#cf8a79';
-  return '#bd6d77';
+  if (value < 3) return 'var(--uv-low)';
+  if (value < 6) return 'var(--uv-moderate)';
+  if (value < 8) return 'var(--uv-high)';
+  if (value < 11) return 'var(--uv-very-high)';
+  return 'var(--uv-extreme)';
 }

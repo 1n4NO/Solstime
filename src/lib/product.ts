@@ -1,6 +1,15 @@
 export type PlanType = 'meeting' | 'event' | 'sync-up' | 'stand-up';
 export type RepeatRule = 'none' | 'daily' | 'weekdays' | 'weekends' | 'weekly' | 'monthly' | 'annual';
 export type OneTimeDate = 'today' | 'tomorrow' | 'custom';
+export type ThemeId = 'amber' | 'mist' | 'moss';
+
+export type ThemeOption = { id: ThemeId; label: string; description: string };
+
+export const THEME_OPTIONS: ThemeOption[] = [
+  { id: 'amber', label: 'Amber', description: 'Warm light on deep green' },
+  { id: 'mist', label: 'Mist', description: 'Cool grey with soft blue' },
+  { id: 'moss', label: 'Moss', description: 'Quiet green with pale gold' },
+];
 
 export type TimezoneLocation = {
   id: string;
@@ -28,6 +37,7 @@ export type Plan = {
 
 export type SolstimeState = {
   version: 1;
+  themeId: ThemeId;
   timezones: TimezoneLocation[];
   activeTimezoneId: string;
   plans: Plan[];
@@ -47,10 +57,10 @@ export const TIMEZONE_OPTIONS: TimezoneLocation[] = [
 ];
 
 export const PLAN_TYPE_COLORS: Record<PlanType, string> = {
-  meeting: '#f1b56e',
-  event: '#cf8a79',
-  'sync-up': '#8fa8c4',
-  'stand-up': '#a9c7a4',
+  meeting: 'var(--event-meeting)',
+  event: 'var(--event-event)',
+  'sync-up': 'var(--event-sync)',
+  'stand-up': 'var(--event-standup)',
 };
 
 export const EMPTY_PLAN: Omit<Plan, 'id'> = {
@@ -67,5 +77,5 @@ export const EMPTY_PLAN: Omit<Plan, 'id'> = {
 };
 
 export function createInitialState(): SolstimeState {
-  return { version: 1, timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
+  return { version: 1, themeId: 'amber', timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
 }

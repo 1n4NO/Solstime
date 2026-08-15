@@ -9,7 +9,7 @@ export default function OpenGraphImage() {
     (
       <div style={{ background: '#111513', color: '#f3f0e8', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '54px 68px', fontFamily: 'Arial' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 25, fontWeight: 700, letterSpacing: -1 }}>
-          <div style={{ width: 22, height: 22, border: '3px solid #f1b56e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 7, height: 7, background: '#f1b56e', borderRadius: '50%' }} /></div>
+          <svg width="24" height="24" viewBox="0 0 28 28"><circle cx="14" cy="14" r="10.5" fill="none" stroke="#f1b56e" strokeWidth="2.2" strokeDasharray="49 17" transform="rotate(-42 14 14)" /><path d="M14 3.5V24.5" fill="none" stroke="#f1b56e" strokeWidth="2.2" /></svg>
           solstime
         </div>
         <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', gap: 90 }}>

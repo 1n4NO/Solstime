@@ -67,8 +67,8 @@ export function EventArcLayer({ segments, currentTimezoneCity, isSwitching, onAc
           const label = `${segment.label}, ${displayTime(segment.displayStartMinutes)} to ${displayTime(segment.displayEndMinutes)}, ${segment.planType}`;
           return (
             <g key={`${segment.planId}-${segment.startMinutes}`}>
-              <path className="event-arc" d={path} fill={segment.color} stroke="#f3f0e8" strokeWidth="0.34" strokeLinejoin="round" aria-hidden="true" />
-              {segment.hardStop && <path className="event-hard-stop" d={innerArcPath(segment)} fill="none" stroke="#e06f66" strokeWidth="0.7" strokeLinecap="butt" aria-hidden="true" />}
+              <path className="event-arc" d={path} fill={segment.color} stroke="var(--event-border)" strokeWidth="0.34" strokeLinejoin="round" aria-hidden="true" />
+              {segment.hardStop && <path className="event-hard-stop" d={innerArcPath(segment)} fill="none" stroke="var(--hard-stop)" strokeWidth="0.7" strokeLinecap="butt" aria-hidden="true" />}
               <path className="event-arc-hit" d={path} fill="transparent" stroke="transparent" strokeWidth="0" tabIndex={0} role="button" aria-label={label} onPointerEnter={() => { setHoveredId(segment.planId); onActiveChange(segment); }} onPointerLeave={() => { setHoveredId(undefined); if (!pinnedId) onActiveChange(null); }} onFocus={() => { setHoveredId(segment.planId); onActiveChange(segment); }} onBlur={() => { if (!pinnedId) onActiveChange(null); }} onClick={() => { const nextPinnedId = pinnedId === segment.planId ? undefined : segment.planId; setPinnedId(nextPinnedId); onActiveChange(nextPinnedId ? segment : null); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); const nextPinnedId = pinnedId === segment.planId ? undefined : segment.planId; setPinnedId(nextPinnedId); onActiveChange(nextPinnedId ? segment : null); } }} />
             </g>
           );

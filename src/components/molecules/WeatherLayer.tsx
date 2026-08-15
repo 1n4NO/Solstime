@@ -21,7 +21,7 @@ export function WeatherLayer({ readings }: WeatherLayerProps) {
       {visible.filter((reading) => reading.rain > 0 || reading.snow > 0).map((reading) => {
         const start = reading.minutes;
         const end = reading.minutes + 60;
-        return <path key={`precipitation-${reading.minutes}`} d={arcPath(start, end, 47.8)} stroke={reading.snow > 0 ? '#f3f0e8' : '#78b9df'} strokeWidth="1.4" fill="none" strokeLinecap="butt" opacity=".9" />;
+        return <path key={`precipitation-${reading.minutes}`} d={arcPath(start, end, 47.8)} stroke={reading.snow > 0 ? 'var(--snow)' : 'var(--rain)'} strokeWidth="1.4" fill="none" strokeLinecap="butt" opacity=".9" />;
       })}
     </svg>
   </div>;
@@ -39,8 +39,7 @@ function point(minutes: number, radius: number) {
 }
 
 function temperatureColor(ratio: number): string {
-  const cold = [102, 169, 202];
-  const warm = [241, 181, 110];
-  const channels = cold.map((value, index) => Math.round(value + (warm[index] - value) * ratio));
-  return `rgb(${channels.join(',')})`;
+  if (ratio < .34) return 'var(--weather-cold)';
+  if (ratio < .67) return 'var(--weather-mild)';
+  return 'var(--weather-warm)';
 }

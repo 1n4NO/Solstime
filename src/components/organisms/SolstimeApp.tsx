@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrandMark } from '../atoms/BrandMark';
 import { PlanModal } from './PlanModal';
 import { TimeDial } from './TimeDial';
-import { createInitialState, Plan, SolstimeState, TimezoneLocation } from '../../lib/product';
+import { createInitialState, Plan, SolstimeState, THEME_OPTIONS, TimezoneLocation } from '../../lib/product';
 import { loadState, saveState } from '../../lib/storage';
 
 export function SolstimeApp() {
@@ -59,12 +59,22 @@ export function SolstimeApp() {
     });
   };
 
+  const changeTheme = (themeId: SolstimeState['themeId']) => {
+    setState((current) => ({ ...current, themeId }));
+  };
+
   if (!activeTimezone) return null;
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" data-theme={state.themeId}>
       <header className="topbar">
         <a className="wordmark" href="#" aria-label="Solstime home"><BrandMark /><span>solstime</span></a>
+        <label className="theme-picker">
+          <span>Theme</span>
+          <select value={state.themeId} onChange={(event) => changeTheme(event.target.value as SolstimeState['themeId'])} aria-label="Choose theme">
+            {THEME_OPTIONS.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}
+          </select>
+        </label>
       </header>
       <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       <div className="visually-hidden" aria-live="polite" aria-atomic="true">{timezoneAnnouncement}</div>

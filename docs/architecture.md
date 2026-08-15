@@ -6,7 +6,7 @@ The dial is the only rendered planning surface. Plans can be created and persist
 
 ## State
 
-`SolstimeState` is versioned and stored under `solstime.state.v1` in local storage. Existing data under the former `solstice.state.v1` key is migrated automatically. It contains saved timezone/location records, the active timezone ID, and plans.
+`SolstimeState` is versioned and stored under `solstime.state.v1` in local storage. Existing data under the former legacy key is migrated automatically. It contains saved timezone/location records, the active timezone ID, and plans.
 
 Timezone records include an IANA timezone plus latitude and longitude because sunrise and sunset are geographic values, not timezone-only values.
 

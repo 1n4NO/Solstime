@@ -30,6 +30,9 @@ export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneCh
   const solarTimes = getSolarTimes(viewDateObject, timezone, timezone.timeZone);
   const moonPhase = getMoonPhase(viewDateObject);
   const eventSegments = useMemo(() => getEventSegments(plans, timezones, viewDateObject, timezone.timeZone), [plans, timezones, viewDateObject, timezone.timeZone]);
+  const currentMinutes = Math.round(currentHour * 60);
+  const currentUv = nearestReading(uvReadings, currentMinutes);
+  const currentWeather = nearestReading(weatherReadings, currentMinutes);
   const sunriseAngle = solarTimes.status === 'polar-day' ? 0 : solarTimes.status === 'polar-night' ? 360 : dialGradientAngle(solarTimes.sunrise);
   const sunsetAngle = solarTimes.status === 'polar-day' ? 360 : solarTimes.status === 'polar-night' ? 0 : dialGradientAngle(solarTimes.sunset);
   const dialStyle = {
@@ -79,7 +82,15 @@ export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneCh
           <div className="dial-foreground-layer">
             {solarTimes.sunriseAvailable && <button className="solar-line solar-line--sunrise" style={{ transform: `rotate(${dialAngle(solarTimes.sunrise)}deg)` }} aria-label={`Sunrise at ${formatSolarTime(solarTimes.sunrise)}`}><span className="solar-tooltip">Sunrise <b>{formatSolarTime(solarTimes.sunrise)}</b></span></button>}
             {solarTimes.sunsetAvailable && <button className="solar-line solar-line--sunset" style={{ transform: `rotate(${dialAngle(solarTimes.sunset)}deg)` }} aria-label={`Sunset at ${formatSolarTime(solarTimes.sunset)}`}><span className="solar-tooltip">Sunset <b>{formatSolarTime(solarTimes.sunset)}</b></span></button>}
-            <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }}><span /></div>
+            <div className="now-line" style={{ transform: `rotate(${dialAngle(currentHour)}deg)` }} aria-label={`Current time ${formatTime(now, timezone.timeZone, !is24Hour)}`}>
+              <span />
+              <span className="now-tooltip" role="status">
+                <b>{formatTime(now, timezone.timeZone, !is24Hour)}</b>
+                {currentUv && <span>UV {currentUv.value.toFixed(1)}</span>}
+                {currentWeather && <span>{Math.round(currentWeather.temperature)}°</span>}
+                {currentWeather && (currentWeather.rain > 0 || currentWeather.snow > 0) && <span>{currentWeather.snow > 0 ? `snow ${currentWeather.snow.toFixed(1)} mm` : `precip ${Math.round(currentWeather.rain)}%`}</span>}
+              </span>
+            </div>
             <div className="ticks">{ticks.map((index) => <DialTick key={index} index={index} />)}</div>
           </div>
           <EventArcLayer segments={eventSegments} currentTimezoneCity={timezone.city} isSwitching={isSwitching} activeEventId={activeEvent?.planId} onActiveChange={setActiveEvent} />
@@ -92,4 +103,9 @@ export function TimeDial({ timezone, timezones, plans, isSwitching, onTimezoneCh
       </div>
     </section>
   );
+}
+
+function nearestReading<T extends { minutes: number }>(readings: T[], minutes: number): T | null {
+  if (readings.length === 0) return null;
+  return readings.reduce((nearest, reading) => Math.abs(reading.minutes - minutes) < Math.abs(nearest.minutes - minutes) ? reading : nearest);
 }

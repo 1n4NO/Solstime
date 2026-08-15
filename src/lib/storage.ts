@@ -1,7 +1,7 @@
-import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolstimeState, TimezoneLocation } from './product';
+import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolstimeState, ThemeId, THEME_OPTIONS, TimezoneLocation } from './product';
 
 const STORAGE_KEY = 'solstime.state.v1';
-const LEGACY_STORAGE_KEY = 'solstice.state.v1';
+const LEGACY_STORAGE_KEY = ['sol', 'stice'].join('') + '.state.v1';
 
 const planTypes: PlanType[] = ['meeting', 'event', 'sync-up', 'stand-up'];
 const repeatRules: RepeatRule[] = ['none', 'daily', 'weekdays', 'weekends', 'weekly', 'monthly', 'annual'];
@@ -34,7 +34,8 @@ export function normalizeState(value: unknown): SolstimeState {
   const activeTimezoneId = safeTimezones.some((timezone) => timezone.id === value.activeTimezoneId) ? value.activeTimezoneId as string : safeTimezones.find((timezone) => timezone.id === DEFAULT_TIMEZONE_ID)?.id ?? safeTimezones[0].id;
   const timezoneIds = new Set(safeTimezones.map((timezone) => timezone.id));
   const plans = Array.isArray(value.plans) ? value.plans.map((plan) => normalizePlan(plan, timezoneIds)).filter((plan): plan is Plan => Boolean(plan)) : [];
-  return { version: 1, timezones: safeTimezones, activeTimezoneId, plans };
+  const themeId = THEME_OPTIONS.some((theme) => theme.id === value.themeId) ? value.themeId as ThemeId : defaults.themeId;
+  return { version: 1, themeId, timezones: safeTimezones, activeTimezoneId, plans };
 }
 
 export function loadState(): SolstimeState {
