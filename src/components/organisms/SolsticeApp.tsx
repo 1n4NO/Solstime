@@ -13,10 +13,11 @@ export function SolsticeApp() {
   const [hydrated, setHydrated] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [storageError, setStorageError] = useState(false);
   const switchTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => { setState(loadState()); setHydrated(true); }, []);
-  useEffect(() => { if (hydrated) saveState(state); }, [hydrated, state]);
+  useEffect(() => { if (hydrated) setStorageError(!saveState(state)); }, [hydrated, state]);
   useEffect(() => () => { if (switchTimer.current) window.clearTimeout(switchTimer.current); }, []);
 
   const activeTimezone = state.timezones.find((timezone) => timezone.id === state.activeTimezoneId) ?? state.timezones[0];
@@ -60,6 +61,7 @@ export function SolsticeApp() {
       </header>
       <TimeDial timezone={activeTimezone} timezones={state.timezones} isSwitching={isSwitching} onTimezoneChange={changeTimezone} />
       <AddButton onClick={() => setModalOpen(true)} />
+      {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
       <PlanModal open={modalOpen} savedTimezones={state.timezones} onClose={() => setModalOpen(false)} onSave={savePlan} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );

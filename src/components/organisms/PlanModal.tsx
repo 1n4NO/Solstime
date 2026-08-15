@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY_PLAN, Plan, PlanType, RepeatRule, TIMEZONE_OPTIONS, TimezoneLocation } from '../../lib/product';
 import { dateKey } from '../../lib/time';
+import { validatePlanTimes } from '../../lib/validation';
 
 type PlanDraft = Omit<Plan, 'id'>;
 type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
@@ -23,14 +24,24 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
   const [customDate, setCustomDate] = useState('');
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setDraft({ ...EMPTY_PLAN, timezoneId: '' }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError('');
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    previouslyFocused.current = document.activeElement as HTMLElement;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), summary'));
+      if (!focusable.length) return;
+      const first = focusable[0]; const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
     window.addEventListener('keydown', closeOnEscape);
     window.setTimeout(() => dialogRef.current?.querySelector<HTMLElement>('select')?.focus(), 0);
-    return () => window.removeEventListener('keydown', closeOnEscape);
+    return () => { window.removeEventListener('keydown', closeOnEscape); previouslyFocused.current?.focus(); };
   }, [open, onClose]);
 
   const availableTimezones = useMemo(() => TIMEZONE_OPTIONS.filter((option) => !savedTimezones.some((saved) => saved.id === option.id)), [savedTimezones]);
@@ -50,7 +61,8 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
     if (!canSave) return;
     if (hasEventDraft) {
       if (!draft.startTime || !draft.endTime || !draft.label) return setError('Add a start time, end time, and label.');
-      if (draft.startTime === draft.endTime) return setError('Start and end time cannot be the same.');
+      const timeValidation = validatePlanTimes(draft.startTime, draft.endTime);
+      if (!timeValidation.valid) return setError(timeValidation.message ?? 'Check the plan times.');
       if (draft.repeatRule === 'none' && draft.date === 'custom' && !customDate) return setError('Choose a custom date.');
     }
     const selected = TIMEZONE_OPTIONS.find((option) => option.id === draft.timezoneId) ?? savedTimezones.find((option) => option.id === draft.timezoneId);
