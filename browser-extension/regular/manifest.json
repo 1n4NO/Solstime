@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Solstime",
+  "version": "0.1.0",
+  "description": "Open a quieter view of your day.",
+  "action": {
+    "default_title": "Open Solstime",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg"
+  }
+}

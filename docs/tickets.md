@@ -98,7 +98,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-209 — Regular Chrome extension for Free
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** permission-free Manifest V3 toolbar popup, canonical dial action, matching icon, and local installation instructions.
 - **Tier:** Free
 - **Goal:** Let users open Solstime from any page without replacing their new tab.
 - **Scope:** Manifest V3 action/popup, toolbar icon, current-time summary, quick-open flow, settings, permissions, and shared authentication/session handling.
@@ -127,7 +128,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-212 — Apple Watch surface for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** watchOS capability spike with a WidgetKit complication and Smart Stack direction, supported-face boundary, data freshness/privacy states, and acceptance matrix.
 - **Tier:** Pro
 - **Goal:** Make Solstime available during a glance at the wrist.
 - **Scope:** First perform a watchOS capability spike for custom watch faces, complications, Smart Stack, and app surfaces; then implement the most viable supported surface with the dial's key solar/time data.
