@@ -110,7 +110,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-210 — iPhone app for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** native SwiftUI shell, shared dial snapshot boundary, preview state, stale-data affordance, and accessibility-oriented text sizing/labels.
 - **Tier:** Pro
 - **Goal:** Deliver the Solstime dial as a native iPhone experience.
 - **Scope:** Native app shell, dial rendering, timezone/date navigation, events, themes, account/auth, offline cache, sync, accessibility, deep links, and App Store packaging.
