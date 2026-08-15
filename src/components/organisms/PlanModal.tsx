@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY_PLAN, Plan, PlanType, RepeatRule, TIMEZONE_OPTIONS, TimezoneLocation } from '../../lib/product';
+import { dateKey } from '../../lib/time';
 
 type PlanDraft = Omit<Plan, 'id'>;
-type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void };
+type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
 
 const planTypes: Array<{ value: PlanType; label: string }> = [
   { value: 'meeting', label: 'Meeting' }, { value: 'event', label: 'Event' }, { value: 'sync-up', label: 'Sync-up' }, { value: 'stand-up', label: 'Stand-up' },
@@ -12,8 +13,10 @@ const planTypes: Array<{ value: PlanType; label: string }> = [
 const repeatOptions: Array<{ value: RepeatRule; label: string }> = [
   { value: 'none', label: 'Does not repeat' }, { value: 'daily', label: 'Daily' }, { value: 'weekdays', label: 'Weekdays' }, { value: 'weekends', label: 'Weekends' }, { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }, { value: 'annual', label: 'Annual' },
 ];
+const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-export function PlanModal({ open, savedTimezones, onClose, onSave }: PlanModalProps) {
+export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimezone, onRemoveTimezone }: PlanModalProps) {
   const [draft, setDraft] = useState<PlanDraft>({ ...EMPTY_PLAN, timezoneId: '' });
   const [showAddTimezone, setShowAddTimezone] = useState(false);
   const [newTimezoneId, setNewTimezoneId] = useState('');
@@ -50,8 +53,11 @@ export function PlanModal({ open, savedTimezones, onClose, onSave }: PlanModalPr
       if (draft.startTime === draft.endTime) return setError('Start and end time cannot be the same.');
       if (draft.repeatRule === 'none' && draft.date === 'custom' && !customDate) return setError('Choose a custom date.');
     }
-    const selected = TIMEZONE_OPTIONS.find((option) => option.id === draft.timezoneId);
-    onSave({ ...draft, date: draft.date === 'custom' ? customDate : draft.date }, selected && !savedTimezones.some((timezone) => timezone.id === selected.id) ? selected : undefined);
+    const selected = TIMEZONE_OPTIONS.find((option) => option.id === draft.timezoneId) ?? savedTimezones.find((option) => option.id === draft.timezoneId);
+    const selectedDate = draft.repeatRule === 'none'
+      ? draft.date === 'custom' ? customDate : dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata', draft.date === 'tomorrow' ? 1 : 0)
+      : undefined;
+    onSave({ ...draft, date: selectedDate }, selected && !savedTimezones.some((timezone) => timezone.id === selected.id) ? selected : undefined);
   };
 
   return (
@@ -71,6 +77,10 @@ export function PlanModal({ open, savedTimezones, onClose, onSave }: PlanModalPr
           <fieldset className="field-group"><legend>Plan type</legend><div className="type-options">{planTypes.map((type) => <label className={`type-option type-option--${type.value}`} key={type.value}><input type="radio" name="plan-type" checked={draft.planType === type.value} onChange={() => update('planType', type.value)} /><span>{type.label}</span></label>)}</div></fieldset>
           <label className="field"><span>Repeat event</span><select value={draft.repeatRule} onChange={(event) => update('repeatRule', event.target.value as RepeatRule)}>{repeatOptions.map((repeat) => <option key={repeat.value} value={repeat.value}>{repeat.label}</option>)}</select></label>
           {draft.repeatRule === 'none' && <fieldset className="field-group"><legend>Date</legend><div className="date-options"><label><input type="radio" name="one-time-date" checked={draft.date === 'today'} onChange={() => update('date', 'today')} /><span>Today</span></label><label><input type="radio" name="one-time-date" checked={draft.date === 'tomorrow'} onChange={() => update('date', 'tomorrow')} /><span>Tomorrow</span></label><label><input type="radio" name="one-time-date" checked={draft.date === 'custom'} onChange={() => update('date', 'custom')} /><span>Custom date</span></label></div>{draft.date === 'custom' && <input className="custom-date" type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} aria-label="Custom event date" />}</fieldset>}
+          {draft.repeatRule === 'weekly' && <label className="field"><span>Repeat on</span><select value={draft.repeatDay} onChange={(event) => update('repeatDay', Number(event.target.value))}>{weekdays.map((weekday, index) => <option value={index + 1} key={weekday}>{weekday}</option>)}</select></label>}
+          {draft.repeatRule === 'monthly' && <label className="field"><span>Day of month</span><input type="number" min="1" max="31" value={draft.repeatDay} onChange={(event) => update('repeatDay', Math.min(31, Math.max(1, Number(event.target.value))))} /><small className="field-help">For shorter months, use the last available day.</small></label>}
+          {draft.repeatRule === 'annual' && <div className="field-row"><label className="field"><span>Month</span><select value={draft.repeatMonth} onChange={(event) => update('repeatMonth', Number(event.target.value))}>{months.map((month, index) => <option value={index + 1} key={month}>{month}</option>)}</select></label><label className="field"><span>Day</span><input type="number" min="1" max="31" value={draft.repeatDay} onChange={(event) => update('repeatDay', Math.min(31, Math.max(1, Number(event.target.value))))} /></label></div>}
+          <details className="timezone-manager"><summary>Manage saved timezones</summary><div className="timezone-manager-list">{savedTimezones.map((saved) => <div className="timezone-manager-row" key={saved.id}><input aria-label={`Name for ${saved.city}`} value={saved.label} onChange={(event) => onRenameTimezone(saved.id, event.target.value)} /><button type="button" onClick={() => onRemoveTimezone(saved.id)} disabled={Boolean(saved.isDefault) || savedTimezones.length === 1}>Remove</button></div>)}</div></details>
           <label className="toggle-row"><span><b>Hard stop</b><small>Protect this time from overrun</small></span><input type="checkbox" checked={draft.hardStop} onChange={(event) => update('hardStop', event.target.checked)} /><i /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
         </div>

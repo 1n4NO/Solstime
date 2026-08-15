@@ -21,6 +21,8 @@ export type Plan = {
   planType: PlanType;
   repeatRule: RepeatRule;
   date?: string;
+  repeatDay?: number;
+  repeatMonth?: number;
   hardStop: boolean;
 };
 
@@ -59,6 +61,8 @@ export const EMPTY_PLAN: Omit<Plan, 'id'> = {
   planType: 'meeting',
   repeatRule: 'none',
   date: 'today',
+  repeatDay: 1,
+  repeatMonth: 1,
   hardStop: false,
 };
 

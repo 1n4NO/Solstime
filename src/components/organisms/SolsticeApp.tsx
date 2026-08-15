@@ -38,6 +38,19 @@ export function SolsticeApp() {
     setModalOpen(false);
   };
 
+  const renameTimezone = (id: string, label: string) => {
+    setState((current) => ({ ...current, timezones: current.timezones.map((timezone) => timezone.id === id ? { ...timezone, label: label || timezone.label } : timezone) }));
+  };
+
+  const removeTimezone = (id: string) => {
+    setState((current) => {
+      const timezone = current.timezones.find((item) => item.id === id);
+      if (!timezone || timezone.isDefault || current.timezones.length === 1) return current;
+      const timezones = current.timezones.filter((item) => item.id !== id);
+      return { ...current, timezones, activeTimezoneId: current.activeTimezoneId === id ? timezones[0].id : current.activeTimezoneId };
+    });
+  };
+
   if (!activeTimezone) return null;
 
   return (
@@ -47,7 +60,7 @@ export function SolsticeApp() {
       </header>
       <TimeDial timezone={activeTimezone} timezones={state.timezones} isSwitching={isSwitching} onTimezoneChange={changeTimezone} />
       <AddButton onClick={() => setModalOpen(true)} />
-      <PlanModal open={modalOpen} savedTimezones={state.timezones} onClose={() => setModalOpen(false)} onSave={savePlan} />
+      <PlanModal open={modalOpen} savedTimezones={state.timezones} onClose={() => setModalOpen(false)} onSave={savePlan} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );
 }
