@@ -120,7 +120,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-211 — iPhone widget for Pro
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** WidgetKit timeline scaffold with supported small/medium/watch-compatible families, shared snapshot entry shape, stale-data handling, privacy states, and app-group integration notes.
 - **Tier:** Pro
 - **Goal:** Put a compact Solstime glance on the iPhone Home Screen and Lock Screen where supported.
 - **Scope:** Widget families, timeline refresh, configurable timezone/theme, deep links, stale-data state, and widget privacy settings.
