@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Solstice 24 hour planner dial';
+export const alt = 'Solstime 24 hour planner dial';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -10,7 +10,7 @@ export default function OpenGraphImage() {
       <div style={{ background: '#111513', color: '#f3f0e8', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '54px 68px', fontFamily: 'Arial' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 25, fontWeight: 700, letterSpacing: -1 }}>
           <div style={{ width: 22, height: 22, border: '3px solid #f1b56e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 7, height: 7, background: '#f1b56e', borderRadius: '50%' }} /></div>
-          solstice
+          solstime
         </div>
         <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', gap: 90 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>

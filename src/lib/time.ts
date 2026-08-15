@@ -1,4 +1,4 @@
-export const SOLSTICE_LOCATION = {
+export const DEFAULT_LOCATION = {
   latitude: 12.9716,
   longitude: 77.5946,
 };
@@ -72,7 +72,7 @@ function solarHour(date: Date, latitude: number, longitude: number, timeZone: st
   return { hour: (universalTime * 60 + timezoneOffset + 1440) % 1440 / 60, reason: 'normal' };
 }
 
-export function getSolarTimes(date: Date, location = SOLSTICE_LOCATION, timeZone = 'Asia/Kolkata'): SolarTimes {
+export function getSolarTimes(date: Date, location = DEFAULT_LOCATION, timeZone = 'Asia/Kolkata'): SolarTimes {
   const parts = calendarParts(date, timeZone);
   const localDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
   const sunriseResult = solarHour(localDate, location.latitude, location.longitude, timeZone, true);
@@ -87,22 +87,37 @@ export function getSolarTimes(date: Date, location = SOLSTICE_LOCATION, timeZone
   };
 }
 
-export function formatTime(date: Date, timeZone = 'Asia/Kolkata'): string {
-  return date.toLocaleTimeString('en-IN', {
+export function formatTime(date: Date, timeZone = 'Asia/Kolkata', hour12 = false): string {
+  const formatted = date.toLocaleTimeString('en-IN', {
     timeZone,
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    hour12,
   });
+  return formatted.replace(/\b(am|pm)\b/i, (period) => period.toUpperCase());
 }
 
 export function formatDate(date: Date, timeZone: string): string {
   return date.toLocaleDateString('en-IN', { timeZone, day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+export function formatDateLabel(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone, month: 'short', day: 'numeric', weekday: 'short' }).formatToParts(date);
+  const month = parts.find((part) => part.type === 'month')?.value ?? '';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '';
+  const weekday = parts.find((part) => part.type === 'weekday')?.value.toUpperCase() ?? '';
+  return `${month} ${day}, ${weekday}`;
+}
+
 export function dateKey(date: Date, timeZone: string, dayOffset = 0): string {
   const current = calendarParts(date, timeZone);
   const shifted = new Date(Date.UTC(current.year, current.month - 1, current.day + dayOffset));
+  return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+}
+
+export function shiftDateKey(value: string, dayOffset: number): string {
+  const [year, month, day] = value.split('-').map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + dayOffset));
   return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
 }
 
@@ -116,6 +131,7 @@ export type LocalTimeStatus = 'valid' | 'nonexistent' | 'ambiguous';
 export function localTimeStatus(dateValue: string, timeValue: string, timeZone: string): LocalTimeStatus {
   const [year, month, day] = dateValue.split('-').map(Number);
   const [hour, minute] = timeValue.split(':').map(Number);
+  if (![year, month, day, hour, minute].every(Number.isFinite) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return 'nonexistent';
   const localAsUtc = Date.UTC(year, month - 1, day, hour, minute);
   const offsets = new Set<number>();
   for (let offset = -2; offset <= 2; offset += 1) offsets.add(timezoneOffsetMinutes(new Date(localAsUtc + offset * 86_400_000), timeZone));
@@ -124,6 +140,17 @@ export function localTimeStatus(dateValue: string, timeValue: string, timeZone: 
     return dateKey(candidate, timeZone) === dateValue && formatTime(candidate, timeZone) === timeValue;
   });
   return matches.length === 0 ? 'nonexistent' : matches.length > 1 ? 'ambiguous' : 'valid';
+}
+
+export function localDateTimeToDate(dateValue: string, timeValue: string, timeZone: string): Date | null {
+  const [year, month, day] = dateValue.split('-').map(Number);
+  const [hour, minute] = timeValue.split(':').map(Number);
+  if (![year, month, day, hour, minute].every(Number.isFinite) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  const localAsUtc = Date.UTC(year, month - 1, day, hour, minute);
+  const offsets = new Set<number>();
+  for (let offset = -2; offset <= 2; offset += 1) offsets.add(timezoneOffsetMinutes(new Date(localAsUtc + offset * 86_400_000), timeZone));
+  const matches = Array.from(offsets).map((offset) => new Date(localAsUtc - offset * 60_000)).filter((candidate) => dateKey(candidate, timeZone) === dateValue && formatTime(candidate, timeZone) === timeValue).sort((first, second) => first.getTime() - second.getTime());
+  return matches[0] ?? null;
 }
 
 export function formatSolarTime(hour: number): string {

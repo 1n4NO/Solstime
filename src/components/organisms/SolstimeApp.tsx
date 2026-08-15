@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { BrandMark } from '../atoms/BrandMark';
 import { PlanModal } from './PlanModal';
 import { TimeDial } from './TimeDial';
-import { createInitialState, Plan, SolsticeState, TimezoneLocation } from '../../lib/product';
+import { createInitialState, Plan, SolstimeState, TimezoneLocation } from '../../lib/product';
 import { loadState, saveState } from '../../lib/storage';
 
-export function SolsticeApp() {
-  const [state, setState] = useState<SolsticeState>(() => createInitialState());
+export function SolstimeApp() {
+  const [state, setState] = useState<SolstimeState>(() => createInitialState());
   const [hydrated, setHydrated] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
@@ -35,10 +35,15 @@ export function SolsticeApp() {
   const savePlan = (draft: Omit<Plan, 'id'>, newTimezone?: TimezoneLocation) => {
     setState((current) => {
       const timezones = newTimezone && !current.timezones.some((timezone) => timezone.id === newTimezone.id) ? [...current.timezones, newTimezone] : current.timezones;
-      const plans = draft.startTime && draft.endTime && draft.label ? [...current.plans, { ...draft, id: crypto.randomUUID() }] : current.plans;
-      return { ...current, timezones, plans, activeTimezoneId: current.activeTimezoneId || draft.timezoneId };
+      const hasEvent = Boolean(draft.startTime && draft.endTime && draft.label);
+      const plans = hasEvent ? [...current.plans, { ...draft, id: crypto.randomUUID() }] : current.plans;
+      return { ...current, timezones, plans, activeTimezoneId: hasEvent ? draft.timezoneId : current.activeTimezoneId };
     });
     setModalOpen(false);
+  };
+
+  const addTimezone = (timezone: TimezoneLocation) => {
+    setState((current) => current.timezones.some((item) => item.id === timezone.id) ? current : { ...current, timezones: [...current.timezones, timezone] });
   };
 
   const renameTimezone = (id: string, label: string) => {
@@ -59,12 +64,12 @@ export function SolsticeApp() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="wordmark" href="#" aria-label="Solstice home"><BrandMark /><span>solstice</span></a>
+        <a className="wordmark" href="#" aria-label="Solstime home"><BrandMark /><span>solstime</span></a>
       </header>
-      <TimeDial timezone={activeTimezone} timezones={state.timezones} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
+      <TimeDial timezone={activeTimezone} timezones={state.timezones} plans={state.plans} isSwitching={isSwitching} onTimezoneChange={changeTimezone} onAdd={() => setModalOpen(true)} />
       <div className="visually-hidden" aria-live="polite" aria-atomic="true">{timezoneAnnouncement}</div>
       {storageError && <div className="storage-notice" role="status">Changes could not be saved on this device.</div>}
-      <PlanModal open={modalOpen} savedTimezones={state.timezones} onClose={() => setModalOpen(false)} onSave={savePlan} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
+      <PlanModal open={modalOpen} savedTimezones={state.timezones} activeTimezoneId={state.activeTimezoneId} onClose={() => setModalOpen(false)} onSave={savePlan} onAddTimezone={addTimezone} onRenameTimezone={renameTimezone} onRemoveTimezone={removeTimezone} />
     </main>
   );
 }

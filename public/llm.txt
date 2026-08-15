@@ -1,6 +1,6 @@
-# Solstice
+# Solstime
 
-Solstice is a 24-hour planner that represents the day as a solar dial.
+Solstime is a 24-hour planner that represents the day as a solar dial.
 
 ## Product
 

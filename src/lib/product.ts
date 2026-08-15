@@ -26,7 +26,7 @@ export type Plan = {
   hardStop: boolean;
 };
 
-export type SolsticeState = {
+export type SolstimeState = {
   version: 1;
   timezones: TimezoneLocation[];
   activeTimezoneId: string;
@@ -66,6 +66,6 @@ export const EMPTY_PLAN: Omit<Plan, 'id'> = {
   hardStop: false,
 };
 
-export function createInitialState(): SolsticeState {
+export function createInitialState(): SolstimeState {
   return { version: 1, timezones: [TIMEZONE_OPTIONS[0]], activeTimezoneId: DEFAULT_TIMEZONE_ID, plans: [] };
 }

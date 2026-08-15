@@ -3,21 +3,21 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
-  title: 'Solstice — 24 hour planner',
+  title: 'Solstime — 24 hour planner',
   description: 'A clear view of your day, tuned to the light outside.',
-  applicationName: 'Solstice',
+  applicationName: 'Solstime',
   generator: 'Next.js',
-  keywords: ['Solstice', '24 hour planner', 'daily planning', 'sunrise', 'sunset'],
+  keywords: ['Solstime', '24 hour planner', 'daily planning', 'sunrise', 'sunset'],
   openGraph: {
-    title: 'Solstice — 24 hour planner',
+    title: 'Solstime — 24 hour planner',
     description: 'Plan your day around the light outside.',
     type: 'website',
-    siteName: 'Solstice',
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Solstice 24 hour planner dial' }],
+    siteName: 'Solstime',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Solstime 24 hour planner dial' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Solstice — 24 hour planner',
+    title: 'Solstime — 24 hour planner',
     description: 'Plan your day around the light outside.',
     images: ['/opengraph-image'],
   },

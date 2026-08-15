@@ -6,7 +6,7 @@ export default function NotFound() {
       <span className="not-found-mark" aria-hidden="true"><span /></span>
       <p className="not-found-code">404 / OUT OF ORBIT</p>
       <h1>This moment isn’t on the dial.</h1>
-      <Link href="/">Return to Solstice</Link>
+      <Link href="/">Return to Solstime</Link>
     </main>
   );
 }

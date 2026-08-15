@@ -1,5 +1,5 @@
-import { SolsticeApp } from '../components/organisms/SolsticeApp';
+import { SolstimeApp } from '../components/organisms/SolstimeApp';
 
 export default function HomePage() {
-  return <SolsticeApp />;
+  return <SolstimeApp />;
 }

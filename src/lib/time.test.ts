@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { dateKey, getSolarTimes, localTimeStatus } from './time';
+import { dateKey, formatDateLabel, getSolarTimes, localTimeStatus, shiftDateKey } from './time';
 
 describe('time calculations', () => {
   it('uses the selected timezone calendar when resolving tomorrow', () => {
     const date = new Date('2026-08-15T23:30:00.000Z');
     expect(dateKey(date, 'Asia/Kolkata')).toBe('2026-08-16');
     expect(dateKey(date, 'Asia/Kolkata', 1)).toBe('2026-08-17');
+  });
+
+  it('formats the local date label for the central dial', () => {
+    expect(formatDateLabel(new Date('2026-08-15T18:30:00.000Z'), 'Asia/Kolkata')).toBe('Aug 16, SUN');
+    expect(shiftDateKey('2026-08-31', 1)).toBe('2026-09-01');
+    expect(shiftDateKey('2026-01-01', -1)).toBe('2025-12-31');
   });
 
   it('returns ordered solar times for Bengaluru', () => {
@@ -27,5 +33,6 @@ describe('time calculations', () => {
   it('detects daylight-saving gaps and ambiguous fall-back times', () => {
     expect(localTimeStatus('2026-03-08', '02:30', 'America/New_York')).toBe('nonexistent');
     expect(localTimeStatus('2026-11-01', '01:30', 'America/New_York')).toBe('ambiguous');
+    expect(localTimeStatus('2026-08-15', '', 'Asia/Kolkata')).toBe('nonexistent');
   });
 });

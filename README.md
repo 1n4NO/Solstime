@@ -1,6 +1,6 @@
-# Solstice
+# Solstime
 
-TypeScript Next.js web app for the Solstice 24-hour planner.
+TypeScript Next.js web app for the Solstime 24-hour planner.
 
 ## Run locally
 
@@ -8,4 +8,4 @@ TypeScript Next.js web app for the Solstice 24-hour planner.
 npm run dev
 ```
 
-The landing page prototype lives separately in `../Solstice-landing`.
+The landing page prototype lives separately in `../Solstime-landing`.

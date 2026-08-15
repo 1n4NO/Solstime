@@ -1,6 +1,7 @@
-import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolsticeState, TimezoneLocation } from './product';
+import { createInitialState, DEFAULT_TIMEZONE_ID, Plan, PlanType, RepeatRule, SolstimeState, TimezoneLocation } from './product';
 
-const STORAGE_KEY = 'solstice.state.v1';
+const STORAGE_KEY = 'solstime.state.v1';
+const LEGACY_STORAGE_KEY = 'solstice.state.v1';
 
 const planTypes: PlanType[] = ['meeting', 'event', 'sync-up', 'stand-up'];
 const repeatRules: RepeatRule[] = ['none', 'daily', 'weekdays', 'weekends', 'weekly', 'monthly', 'annual'];
@@ -24,7 +25,7 @@ function normalizePlan(value: unknown, timezoneIds: Set<string>): Plan | null {
   return { id: value.id, timezoneId: value.timezoneId, startTime: value.startTime, endTime: value.endTime, label: value.label, planType, repeatRule, ...(typeof value.date === 'string' ? { date: value.date } : {}), ...(typeof value.repeatDay === 'number' ? { repeatDay: value.repeatDay } : {}), ...(typeof value.repeatMonth === 'number' ? { repeatMonth: value.repeatMonth } : {}), hardStop: value.hardStop === true };
 }
 
-export function normalizeState(value: unknown): SolsticeState {
+export function normalizeState(value: unknown): SolstimeState {
   const defaults = createInitialState();
   if (!isRecord(value)) return defaults;
   const timezones = Array.isArray(value.timezones) ? value.timezones.map(normalizeTimezone).filter((timezone): timezone is TimezoneLocation => Boolean(timezone)) : [];
@@ -36,18 +37,20 @@ export function normalizeState(value: unknown): SolsticeState {
   return { version: 1, timezones: safeTimezones, activeTimezoneId, plans };
 }
 
-export function loadState(): SolsticeState {
+export function loadState(): SolstimeState {
   if (typeof window === 'undefined') return createInitialState();
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!stored) return createInitialState();
-    return normalizeState(JSON.parse(stored) as unknown);
+    const normalized = normalizeState(JSON.parse(stored) as unknown);
+    if (!window.localStorage.getItem(STORAGE_KEY)) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return normalized;
   } catch {
     return createInitialState();
   }
 }
 
-export function saveState(state: SolsticeState): boolean {
+export function saveState(state: SolstimeState): boolean {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;

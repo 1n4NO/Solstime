@@ -6,7 +6,7 @@ import { dateKey, localTimeStatus } from '../../lib/time';
 import { validatePlanTimes } from '../../lib/validation';
 
 type PlanDraft = Omit<Plan, 'id'>;
-type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
+type PlanModalProps = { open: boolean; savedTimezones: TimezoneLocation[]; activeTimezoneId: string; onClose: () => void; onSave: (draft: PlanDraft, timezone?: TimezoneLocation) => void; onAddTimezone: (timezone: TimezoneLocation) => void; onRenameTimezone: (id: string, label: string) => void; onRemoveTimezone: (id: string) => void };
 
 const planTypes: Array<{ value: PlanType; label: string }> = [
   { value: 'meeting', label: 'Meeting' }, { value: 'event', label: 'Event' }, { value: 'sync-up', label: 'Sync-up' }, { value: 'stand-up', label: 'Stand-up' },
@@ -17,7 +17,7 @@ const repeatOptions: Array<{ value: RepeatRule; label: string }> = [
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimezone, onRemoveTimezone }: PlanModalProps) {
+export function PlanModal({ open, savedTimezones, activeTimezoneId, onClose, onSave, onAddTimezone, onRenameTimezone, onRemoveTimezone }: PlanModalProps) {
   const [draft, setDraft] = useState<PlanDraft>({ ...EMPTY_PLAN, timezoneId: '' });
   const [showAddTimezone, setShowAddTimezone] = useState(false);
   const [newTimezoneId, setNewTimezoneId] = useState('');
@@ -30,7 +30,7 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
 
   useEffect(() => {
     if (!open) return;
-    setDraft({ ...EMPTY_PLAN, timezoneId: '' }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError(''); setWarning(''); setAmbiguousConfirmed(false);
+    setDraft({ ...EMPTY_PLAN, timezoneId: activeTimezoneId }); setShowAddTimezone(false); setNewTimezoneId(''); setCustomDate(''); setError(''); setWarning(''); setAmbiguousConfirmed(false);
     previouslyFocused.current = document.activeElement as HTMLElement;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -44,7 +44,7 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
     window.addEventListener('keydown', closeOnEscape);
     window.setTimeout(() => dialogRef.current?.querySelector<HTMLElement>('select')?.focus(), 0);
     return () => { window.removeEventListener('keydown', closeOnEscape); previouslyFocused.current?.focus(); };
-  }, [open, onClose]);
+  }, [open, onClose, activeTimezoneId]);
 
   const availableTimezones = useMemo(() => TIMEZONE_OPTIONS.filter((option) => !savedTimezones.some((saved) => saved.id === option.id)), [savedTimezones]);
   const hasEventDraft = Boolean(draft.startTime || draft.endTime || draft.label);
@@ -61,6 +61,9 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
 
   const addTimezoneToDraft = () => {
     if (!newTimezoneId) return;
+    const timezone = TIMEZONE_OPTIONS.find((option) => option.id === newTimezoneId);
+    if (!timezone) return;
+    onAddTimezone(timezone);
     update('timezoneId', newTimezoneId); setShowAddTimezone(false); setNewTimezoneId('');
   };
 
@@ -75,19 +78,22 @@ export function PlanModal({ open, savedTimezones, onClose, onSave, onRenameTimez
       if (draft.repeatRule === 'none' && draft.date === 'custom' && !customDate) return setError('Choose a custom date.');
     }
     const selected = TIMEZONE_OPTIONS.find((option) => option.id === draft.timezoneId) ?? savedTimezones.find((option) => option.id === draft.timezoneId);
-    const selectedDate = draft.repeatRule === 'none'
-      ? draft.date === 'custom' ? customDate : dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata', draft.date === 'tomorrow' ? 1 : 0)
-      : undefined;
-    const eventDate = selectedDate ?? dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata');
-    const startStatus = localTimeStatus(eventDate, draft.startTime, selected?.timeZone ?? 'Asia/Kolkata');
-    const endStatus = localTimeStatus(eventDate, draft.endTime, selected?.timeZone ?? 'Asia/Kolkata');
-    if (startStatus === 'nonexistent' || endStatus === 'nonexistent') return setError('One of these times does not exist because of a daylight-saving change.');
-    if ((startStatus === 'ambiguous' || endStatus === 'ambiguous') && !ambiguousConfirmed) {
-      setWarning('This date includes a daylight-saving fall-back hour. Click Save again to use the first occurrence of an ambiguous time.');
-      setAmbiguousConfirmed(true);
-      return;
+    let selectedDate: string | undefined;
+    if (hasEventDraft) {
+      selectedDate = draft.repeatRule === 'none'
+        ? draft.date === 'custom' ? customDate : dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata', draft.date === 'tomorrow' ? 1 : 0)
+        : undefined;
+      const eventDate = selectedDate ?? dateKey(new Date(), selected?.timeZone ?? 'Asia/Kolkata');
+      const startStatus = localTimeStatus(eventDate, draft.startTime, selected?.timeZone ?? 'Asia/Kolkata');
+      const endStatus = localTimeStatus(eventDate, draft.endTime, selected?.timeZone ?? 'Asia/Kolkata');
+      if (startStatus === 'nonexistent' || endStatus === 'nonexistent') return setError('One of these times does not exist because of a daylight-saving change.');
+      if ((startStatus === 'ambiguous' || endStatus === 'ambiguous') && !ambiguousConfirmed) {
+        setWarning('This date includes a daylight-saving fall-back hour. Click Save again to use the first occurrence of an ambiguous time.');
+        setAmbiguousConfirmed(true);
+        return;
+      }
     }
-    onSave({ ...draft, date: selectedDate }, selected && !savedTimezones.some((timezone) => timezone.id === selected.id) ? selected : undefined);
+    onSave({ ...draft, date: selectedDate });
   };
 
   return (
