@@ -14,14 +14,14 @@ export function WeatherLayer({ readings }: WeatherLayerProps) {
         const start = reading.minutes;
         const end = reading.minutes + 60;
         const ratio = maximum === minimum ? .5 : (reading.temperature - minimum) / (maximum - minimum);
-        return <path key={`temperature-${reading.minutes}`} d={arcPath(start, end, 49)} stroke={temperatureColor(ratio)} strokeWidth=".7" fill="none" strokeLinecap="round" />;
+        return <path key={`temperature-${reading.minutes}`} d={arcPath(start, end, 49)} stroke={temperatureColor(ratio)} strokeWidth=".7" fill="none" strokeLinecap="butt" />;
       })}
     </svg>
     <svg className="precipitation-ring" viewBox="0 0 100 100" aria-hidden="true">
       {visible.filter((reading) => reading.rain > 0 || reading.snow > 0).map((reading) => {
         const start = reading.minutes;
         const end = reading.minutes + 60;
-        return <path key={`precipitation-${reading.minutes}`} d={arcPath(start, end, 47.8)} stroke={reading.snow > 0 ? '#f3f0e8' : '#78b9df'} strokeWidth="1.4" fill="none" strokeLinecap="round" opacity=".9" />;
+        return <path key={`precipitation-${reading.minutes}`} d={arcPath(start, end, 47.8)} stroke={reading.snow > 0 ? '#f3f0e8' : '#78b9df'} strokeWidth="1.4" fill="none" strokeLinecap="butt" opacity=".9" />;
       })}
     </svg>
   </div>;
