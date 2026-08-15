@@ -142,7 +142,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-213 — Sync one Google or Outlook calendar for Free
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** provider-neutral read-only calendar model, connection/error states, timezone-safe event normalization, active-timezone display formatting, and stale-sync detection tests.
 - **Tier:** Free
 - **Goal:** Bring one external calendar into the Solstime day view.
 - **Scope:** OAuth for Google and Microsoft, one connected provider/calendar, read-only event import, timezone conversion, refresh, disconnect, conflict/error states, and privacy copy.
