@@ -78,7 +78,8 @@ Status values: `planned`, `in progress`, `blocked`, `done`.
 
 ### ST-207 — Mac desktop widget for Free
 
-- **Status:** planned
+- **Status:** in progress
+- **Implemented:** Electron feasibility decision and desktop widget data, refresh, privacy, packaging, and acceptance contract documented in `desktop-widget-spike.md`.
 - **Tier:** Free
 - **Goal:** Show the Solstime dial at a glance on macOS.
 - **Scope:** Evaluate Electron versus Hammerspoon, package/install flow, widget sizing, theme selection, current timezone, solar/weather refresh, click-through to the web app, and offline fallback.
